@@ -20,7 +20,6 @@ final class ExceptionSubscriber implements EventSubscriberInterface
     public function onException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
-        dd($exception);
 
         [$status, $message] = match (true) {
             $exception instanceof HttpExceptionInterface => [$exception->getStatusCode(), $exception->getMessage()],
