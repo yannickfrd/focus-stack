@@ -19,7 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@domain/*": ["./src/Core/Domain/*"],
+      "@application/*": ["./src/Core/Application/*"],
+      "@infrastructure/*": ["./src/Infrastructure/*"],
+      "@ui/*": ["./src/UserInterface/*"]
     }
   },
   "include": [
