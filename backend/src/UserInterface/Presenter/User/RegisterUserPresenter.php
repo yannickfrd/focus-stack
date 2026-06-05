@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Presenter\User;
 
-use App\Core\Domain\Repository\User\User;
+use App\Core\Domain\Entity\User\User;
 
 final class RegisterUserPresenter
 {

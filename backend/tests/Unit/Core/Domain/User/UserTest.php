@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Core\Domain\User;
 
-use App\Core\Domain\Repository\User\User;
+use App\Core\Domain\Entity\User\User;
 use PHPUnit\Framework\TestCase;
 
 final class UserTest extends TestCase

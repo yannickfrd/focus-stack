@@ -23,21 +23,14 @@ final class UserEntity
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(
-        string $id,
-        string $email,
-        string $passwordHash,
-        \DateTimeImmutable $createdAt,
-    ) {
-        $this->id = $id;
-        $this->email = $email;
-        $this->passwordHash = $passwordHash;
-        $this->createdAt = $createdAt;
-    }
-
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): void
+    {
+        $this->id = $id;
     }
 
     public function getEmail(): string
@@ -45,13 +38,28 @@ final class UserEntity
         return $this->email;
     }
 
+    public function setEmail(string $email): void
+    {
+        $this->email = $email;
+    }
+
     public function getPasswordHash(): string
     {
         return $this->passwordHash;
     }
 
+    public function setPasswordHash(string $passwordHash): void
+    {
+        $this->passwordHash = $passwordHash;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): void
+    {
+        $this->createdAt = $createdAt;
     }
 }

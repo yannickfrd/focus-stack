@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Domain\Repository\User;
+namespace App\Core\Domain\Entity\User;
 
 final class User
 {

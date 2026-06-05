@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Core\Application\UseCase\User;
 
-use App\Core\Domain\Repository\User\User;
+use App\Core\Domain\Entity\User\User;
 use App\Core\Domain\Repository\User\UserRepositoryInterface;
+use App\Core\Domain\Service\UuidGeneratorInterface;
 
 final readonly class RegisterUserUseCase
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
+        private UuidGeneratorInterface $uuidGenerator,
     ) {}
 
     public function execute(string $email, string $password): User
@@ -20,7 +22,7 @@ final readonly class RegisterUserUseCase
         }
 
         $user = User::create(
-            id: $this->generateUuid(),
+            id: $this->uuidGenerator->generate(),
             email: $email,
             passwordHash: password_hash($password, PASSWORD_BCRYPT),
         );
@@ -28,14 +30,5 @@ final readonly class RegisterUserUseCase
         $this->userRepository->save($user);
 
         return $user;
-    }
-
-    private function generateUuid(): string
-    {
-        $data = random_bytes(16);
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }
