@@ -8,7 +8,7 @@ use App\Infrastructure\Persistence\Doctrine\Entity\UserEntity;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-final class DoctrineUserRepository extends ServiceEntityRepository implements UserEntityRepositoryInterface
+final class DoctrineUserRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -19,21 +19,5 @@ final class DoctrineUserRepository extends ServiceEntityRepository implements Us
     {
         $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush();
-    }
-
-    public function findByEmail(string $email): ?UserEntity
-    {
-        /** @var UserEntity|null */
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.email = :email')
-            ->setParameter('email', $email)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    public function findById(string $id): ?UserEntity
-    {
-        /** @var UserEntity|null */
-        return $this->find($id);
     }
 }
