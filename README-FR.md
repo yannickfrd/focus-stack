@@ -11,54 +11,8 @@ Application fullstack de productivité pour suivre son temps de concentration et
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4 |
 | Backend | Symfony 8.0, PHP ≥ 8.4, Doctrine ORM |
 | Base de données | PostgreSQL 16 (Docker) |
-| DI (frontend) | Awilix |
-| État serveur | TanStack React Query v4 |
-| Formulaires | React Hook Form |
-| Tests | PHPUnit 13 (backend), Vitest + React Testing Library (frontend) |
 
-## Structure du projet
-
-```
-focus-stack/
-├── docker-compose.yml   # PostgreSQL 16
-├── frontend/            # Next.js App Router
-│   └── src/
-│       ├── Core/
-│       │   ├── Domain/
-│       │   │   ├── Entities/    # Entités métier
-│       │   │   └── Ports/       # Interfaces repository, port token auth
-│       │   └── Application/
-│       │       ├── UseCases/    # Use cases
-│       │       └── Requests/    # Objets de requête
-│       ├── Infrastructure/
-│       │   ├── Http/            # Adaptateurs API (fetch)
-│       │   ├── Storage/         # Adaptateur cookie (token auth)
-│       │   └── Di/              # Conteneur Awilix
-│       └── UserInterface/
-│           ├── Components/      # Composants React
-│           └── Hooks/           # Hooks personnalisés (React Query)
-└── backend/             # Symfony 8.0
-    └── src/
-        ├── Core/
-        │   ├── Domain/
-        │   │   ├── Entity/      # Entités POPO
-        │   │   ├── Repository/  # Interfaces repository
-        │   │   └── Service/     # Interfaces de service (générateur UUID)
-        │   └── Application/
-        │       └── UseCase/     # Use cases
-        ├── Infrastructure/
-        │   ├── Service/         # Services concrets (UUID)
-        │   └── Persistence/Doctrine/
-        │       ├── Entity/      # Entités Doctrine
-        │       ├── Repository/  # Implémentations Doctrine
-        │       ├── Adapter/     # Adaptateurs repository (Domaine ↔ Doctrine)
-        │       └── Mapper/      # Mappers Domaine ↔ Doctrine
-        └── UserInterface/
-            ├── Controller/      # Contrôleurs JSON
-            ├── DTO/             # DTO de requête
-            ├── Presenter/       # Formatage des réponses
-            └── EventSubscriber/ # Gestion globale des exceptions
-```
+→ Détails : [backend/README-FR.md](./backend/README-FR.md) · [frontend/README-FR.md](./frontend/README-FR.md)
 
 ## Démarrage rapide
 
@@ -71,7 +25,9 @@ focus-stack/
 
 Tout est piloté par **Make**. Un Makefile racine dans `focus-stack/` délègue aux sous-Makefiles `backend/` et `frontend/`.
 
-### Première installation (une seule commande)
+> `make` doit être installé (`brew install make` sur macOS, `choco install make` sur Windows, ou via WSL).
+
+### Première installation
 
 ```bash
 make install   # démarre Docker, installe les dépendances, crée la BDD et joue les migrations
@@ -84,52 +40,7 @@ make dev       # démarre la BDD + le serveur Symfony + le serveur de dev Next.j
 make stop      # arrête tous les serveurs et le conteneur Docker
 ```
 
-### Explorer les cibles disponibles
-
-```bash
-make help              # cibles racine
-make -C backend help   # cibles backend uniquement
-make -C frontend help  # cibles frontend uniquement
-```
-
-Vous pouvez aussi lancer n'importe quelle cible depuis la racine avec le préfixe `backend-` / `frontend-` :
-
-```bash
-make backend-migrate
-make backend-migration-diff
-make frontend-build
-make frontend-lint
-```
-
-> `make` doit être installé (`brew install make` sur macOS, `choco install make` sur Windows, ou via WSL).
-
-## Endpoints API
-
-| Méthode | Chemin | Description |
-|---------|--------|-------------|
-| `POST` | `/register` | Créer un compte utilisateur |
-
-### POST /register
-
-Corps de la requête :
-```json
-{
-  "email": "utilisateur@exemple.com",
-  "password": "motdepasse"
-}
-```
-
-Réponse `201 Created` :
-```json
-{
-  "id": "uuid",
-  "email": "utilisateur@exemple.com"
-}
-```
-
-## Commandes disponibles
-
-### Racine (`focus-stack/`)
+### Commandes racine
 
 | Cible | Description |
 |-------|-------------|
@@ -142,40 +53,14 @@ Réponse `201 Created` :
 | `make backend-<cible>` | Lance n'importe quelle cible backend depuis la racine |
 | `make frontend-<cible>` | Lance n'importe quelle cible frontend depuis la racine |
 
-### Backend (`focus-stack/backend/`)
-
-| Cible | Description |
-|-------|-------------|
-| `make install` | `composer install` |
-| `make start` | Démarre le serveur Symfony |
-| `make stop` | Arrête le serveur Symfony |
-| `make db-create` | Crée la base de données (première fois uniquement) |
-| `make migrate` | Joue les migrations en attente |
-| `make migration-diff` | Génère une migration depuis les entités |
-| `make migration-status` | Affiche l'état des migrations |
-| `make cache-clear` | Vide le cache Symfony |
-| `make test` | Lance les tests PHPUnit |
-
-### Frontend (`focus-stack/frontend/`)
-
-| Cible | Description |
-|-------|-------------|
-| `make install` | `npm install` |
-| `make dev` | Démarre le serveur de dev Next.js |
-| `make build` | Build de production |
-| `make start` | Démarre le serveur de production |
-| `make lint` | Lance ESLint |
-
-## Notes d'architecture
+## Architecture
 
 L'**architecture hexagonale** est appliquée des deux côtés :
 
-- La couche **Domain** contient la logique métier pure sans dépendance framework (POPO côté backend, classes TypeScript simples côté frontend).
-- La couche **Application** contient les use cases qui orchestrent le domaine via des interfaces repository.
-- La couche **Infrastructure** fournit les implémentations concrètes (repositories Doctrine, adaptateurs HTTP) injectées via les interfaces — jamais importées directement par les couches Domain ou Application.
-- La couche **UserInterface** expose les contrôleurs HTTP (backend) et les composants React / hooks (frontend).
-
-Le frontend utilise **Awilix** comme conteneur d'injection de dépendances pour câbler les use cases et les adaptateurs au démarrage, et **TanStack React Query** pour la gestion de l'état serveur.
+- **Domain** — logique métier pure, sans dépendance framework (POPO côté backend, classes TypeScript simples côté frontend).
+- **Application** — use cases qui orchestrent le domaine via des interfaces repository.
+- **Infrastructure** — implémentations concrètes (repositories Doctrine, adaptateurs HTTP) injectées via les interfaces.
+- **UserInterface** — contrôleurs HTTP (backend) et composants React / hooks (frontend).
 
 ### Pourquoi un monorepo ?
 

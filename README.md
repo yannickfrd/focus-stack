@@ -11,54 +11,8 @@ A fullstack productivity application for tracking focus time and managing tasks 
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4 |
 | Backend | Symfony 8.0, PHP ≥ 8.4, Doctrine ORM |
 | Database | PostgreSQL 16 (Docker) |
-| DI (frontend) | Awilix |
-| Server state | TanStack React Query v4 |
-| Forms | React Hook Form |
-| Testing | PHPUnit 13 (backend), Vitest + React Testing Library (frontend) |
 
-## Project Structure
-
-```
-focus-stack/
-├── docker-compose.yml   # PostgreSQL 16
-├── frontend/            # Next.js App Router
-│   └── src/
-│       ├── Core/
-│       │   ├── Domain/
-│       │   │   ├── Entities/    # Domain entities
-│       │   │   └── Ports/       # Repository interfaces, auth token port
-│       │   └── Application/
-│       │       ├── UseCases/    # Use cases
-│       │       └── Requests/    # Request objects
-│       ├── Infrastructure/
-│       │   ├── Http/            # API adapters (fetch)
-│       │   ├── Storage/         # Cookie adapter (auth token)
-│       │   └── Di/              # Awilix container
-│       └── UserInterface/
-│           ├── Components/      # React components
-│           └── Hooks/           # Custom hooks (React Query)
-└── backend/             # Symfony 8.0
-    └── src/
-        ├── Core/
-        │   ├── Domain/
-        │   │   ├── Entity/      # POPO entities
-        │   │   ├── Repository/  # Repository interfaces
-        │   │   └── Service/     # Service interfaces (UUID generator)
-        │   └── Application/
-        │       └── UseCase/     # Use cases
-        ├── Infrastructure/
-        │   ├── Service/         # Concrete services (UUID)
-        │   └── Persistence/Doctrine/
-        │       ├── Entity/      # Doctrine entities
-        │       ├── Repository/  # Doctrine implementations
-        │       ├── Adapter/     # Repository adapters (Domain ↔ Doctrine)
-        │       └── Mapper/      # Domain ↔ Doctrine mappers
-        └── UserInterface/
-            ├── Controller/      # JSON controllers
-            ├── DTO/             # Request DTOs
-            ├── Presenter/       # Response formatting
-            └── EventSubscriber/ # Global exception handling
-```
+→ Details: [backend/README.md](./backend/README.md) · [frontend/README.md](./frontend/README.md)
 
 ## Quick Start
 
@@ -71,7 +25,9 @@ focus-stack/
 
 Everything is driven by **Make**. A root Makefile at `focus-stack/` delegates to the `backend/` and `frontend/` sub-Makefiles.
 
-### First install (one command)
+> `make` must be installed (`brew install make` on macOS, `choco install make` on Windows, or via WSL).
+
+### First install
 
 ```bash
 make install   # starts Docker, installs deps, creates DB, runs migrations
@@ -84,52 +40,7 @@ make dev       # starts DB + Symfony server + Next.js dev server
 make stop      # stops all servers and the database container
 ```
 
-### Explore available targets
-
-```bash
-make help              # root targets
-make -C backend help   # backend-only targets
-make -C frontend help  # frontend-only targets
-```
-
-You can also run any sub-Makefile target from the root with the `backend-` / `frontend-` prefix:
-
-```bash
-make backend-migrate
-make backend-migration-diff
-make frontend-build
-make frontend-lint
-```
-
-> `make` must be installed (`brew install make` on macOS, `choco install make` on Windows, or via WSL).
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/register` | Register a new user |
-
-### POST /register
-
-Request body:
-```json
-{
-  "email": "user@example.com",
-  "password": "secret"
-}
-```
-
-Response `201 Created`:
-```json
-{
-  "id": "uuid",
-  "email": "user@example.com"
-}
-```
-
-## Available Commands
-
-### Root (`focus-stack/`)
+### Root commands
 
 | Target | Description |
 |--------|-------------|
@@ -142,40 +53,14 @@ Response `201 Created`:
 | `make backend-<target>` | Run any backend target from the root |
 | `make frontend-<target>` | Run any frontend target from the root |
 
-### Backend (`focus-stack/backend/`)
-
-| Target | Description |
-|--------|-------------|
-| `make install` | `composer install` |
-| `make start` | Start the Symfony dev server |
-| `make stop` | Stop the Symfony dev server |
-| `make db-create` | Create the database (first run only) |
-| `make migrate` | Run pending migrations |
-| `make migration-diff` | Generate a migration from entity changes |
-| `make migration-status` | Show migration status |
-| `make cache-clear` | Clear the Symfony cache |
-| `make test` | Run PHPUnit tests |
-
-### Frontend (`focus-stack/frontend/`)
-
-| Target | Description |
-|--------|-------------|
-| `make install` | `npm install` |
-| `make dev` | Start the Next.js dev server |
-| `make build` | Production build |
-| `make start` | Start the production server |
-| `make lint` | Run ESLint |
-
-## Architecture Notes
+## Architecture
 
 **Hexagonal architecture** is applied on both sides:
 
-- **Domain** layer contains pure business logic with no framework dependency (POPO on the backend, plain TypeScript classes on the frontend).
-- **Application** layer holds use cases that orchestrate the domain through repository interfaces.
-- **Infrastructure** layer provides concrete implementations (Doctrine repositories, HTTP adapters) injected via interfaces — never imported directly by the domain or application layers.
-- **UserInterface** layer exposes HTTP controllers (backend) and React components / hooks (frontend).
-
-The frontend uses **Awilix** as a DI container to wire use cases and repository adapters at startup, and **TanStack React Query** for server state management.
+- **Domain** — pure business logic, no framework dependency (POPO on the backend, plain TypeScript classes on the frontend).
+- **Application** — use cases that orchestrate the domain through repository interfaces.
+- **Infrastructure** — concrete implementations (Doctrine repositories, HTTP adapters) injected via interfaces.
+- **UserInterface** — HTTP controllers (backend) and React components / hooks (frontend).
 
 ### Why a monorepo?
 
