@@ -1,4 +1,4 @@
-export abstract class AbstractHttpRepository {
+export abstract class AbstractHttpGateway {
   protected readonly baseUrl: string;
 
   constructor() {

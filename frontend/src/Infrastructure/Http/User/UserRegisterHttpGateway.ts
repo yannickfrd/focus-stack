@@ -1,8 +1,8 @@
-import type { UserRepositoryInterface, RegisterInput } from '@domain/Repositories/User/UserRepositoryInterface';
+import type { UserPort, RegisterInput } from '@domain/Ports/User/UserPort';
 import type { User } from '@domain/Entities/User/User';
-import { AbstractHttpRepository } from '@infrastructure/Http/AbstractHttpRepository';
+import { AbstractHttpGateway } from '@infrastructure/Http/AbstractHttpGateway';
 
-export class UserRegisterHttp extends AbstractHttpRepository implements UserRepositoryInterface {
+export class UserRegisterHttpGateway extends AbstractHttpGateway implements UserPort {
   async register(input: RegisterInput): Promise<User> {
     const res = await fetch(`${this.baseUrl}/register`, {
       method: 'POST',

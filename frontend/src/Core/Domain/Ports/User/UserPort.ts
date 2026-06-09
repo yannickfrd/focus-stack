@@ -5,6 +5,6 @@ export interface RegisterInput {
   password: string;
 }
 
-export interface UserRepositoryInterface {
+export interface UserPort {
   register(input: RegisterInput): Promise<User>;
 }

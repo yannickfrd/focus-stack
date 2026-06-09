@@ -2,7 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { RegisterUserCommand } from '@application/Commands/User/RegisterUserCommand';
+import { RegisterUserRequest } from '@application/Requests/User/RegisterUserRequest';
 import { RegisterUserUseCase } from '@application/UseCases/User/RegisterUserUseCase';
 import { container } from '@infrastructure/Di/container';
 import type { AuthTokenPort } from '@domain/Ports/Auth/AuthTokenPort';
@@ -15,7 +15,7 @@ export function useRegisterUser() {
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
-      useCase.execute(new RegisterUserCommand(email, password)),
+      useCase.execute(new RegisterUserRequest(email, password)),
     onSuccess: (user) => {
       authToken.store(user.id);
       router.push('/');
