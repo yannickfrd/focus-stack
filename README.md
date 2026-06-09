@@ -13,6 +13,8 @@ A fullstack productivity application for tracking focus time and managing tasks 
 | Database | PostgreSQL 16 (Docker) |
 | DI (frontend) | Awilix |
 | Server state | TanStack React Query v4 |
+| Forms | React Hook Form |
+| Testing | PHPUnit 13 (backend), Vitest + React Testing Library (frontend) |
 
 ## Project Structure
 
@@ -22,8 +24,12 @@ focus-stack/
 ├── frontend/            # Next.js App Router
 │   └── src/
 │       ├── Core/
-│       │   ├── Domain/          # Entities, repository interfaces, ports
-│       │   └── Application/     # Use cases, commands
+│       │   ├── Domain/
+│       │   │   ├── Entities/    # Domain entities
+│       │   │   └── Ports/       # Repository interfaces, auth token port
+│       │   └── Application/
+│       │       ├── UseCases/    # Use cases
+│       │       └── Requests/    # Request objects
 │       ├── Infrastructure/
 │       │   ├── Http/            # API adapters (fetch)
 │       │   ├── Storage/         # Cookie adapter (auth token)
@@ -34,17 +40,24 @@ focus-stack/
 └── backend/             # Symfony 8.0
     └── src/
         ├── Core/
-        │   ├── Domain/          # POPO entities, repository interfaces
-        │   └── Application/     # Use cases
+        │   ├── Domain/
+        │   │   ├── Entity/      # POPO entities
+        │   │   ├── Repository/  # Repository interfaces
+        │   │   └── Service/     # Service interfaces (UUID generator)
+        │   └── Application/
+        │       └── UseCase/     # Use cases
         ├── Infrastructure/
+        │   ├── Service/         # Concrete services (UUID)
         │   └── Persistence/Doctrine/
         │       ├── Entity/      # Doctrine entities
         │       ├── Repository/  # Doctrine implementations
+        │       ├── Adapter/     # Repository adapters (Domain ↔ Doctrine)
         │       └── Mapper/      # Domain ↔ Doctrine mappers
         └── UserInterface/
             ├── Controller/      # JSON controllers
             ├── DTO/             # Request DTOs
-            └── Presenter/       # Response formatting
+            ├── Presenter/       # Response formatting
+            └── EventSubscriber/ # Global exception handling
 ```
 
 ## Quick Start
@@ -98,14 +111,16 @@ make frontend-lint
 
 ### POST /register
 
+Request body:
 ```json
-// Request body
 {
   "email": "user@example.com",
   "password": "secret"
 }
+```
 
-// Response 201 Created
+Response `201 Created`:
+```json
 {
   "id": "uuid",
   "email": "user@example.com"

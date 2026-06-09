@@ -13,6 +13,8 @@ Application fullstack de productivité pour suivre son temps de concentration et
 | Base de données | PostgreSQL 16 (Docker) |
 | DI (frontend) | Awilix |
 | État serveur | TanStack React Query v4 |
+| Formulaires | React Hook Form |
+| Tests | PHPUnit 13 (backend), Vitest + React Testing Library (frontend) |
 
 ## Structure du projet
 
@@ -22,8 +24,12 @@ focus-stack/
 ├── frontend/            # Next.js App Router
 │   └── src/
 │       ├── Core/
-│       │   ├── Domain/          # Entités, interfaces repository, ports
-│       │   └── Application/     # Use cases, commands
+│       │   ├── Domain/
+│       │   │   ├── Entities/    # Entités métier
+│       │   │   └── Ports/       # Interfaces repository, port token auth
+│       │   └── Application/
+│       │       ├── UseCases/    # Use cases
+│       │       └── Requests/    # Objets de requête
 │       ├── Infrastructure/
 │       │   ├── Http/            # Adaptateurs API (fetch)
 │       │   ├── Storage/         # Adaptateur cookie (token auth)
@@ -34,17 +40,24 @@ focus-stack/
 └── backend/             # Symfony 8.0
     └── src/
         ├── Core/
-        │   ├── Domain/          # Entités POPO, interfaces repository
-        │   └── Application/     # Use cases
+        │   ├── Domain/
+        │   │   ├── Entity/      # Entités POPO
+        │   │   ├── Repository/  # Interfaces repository
+        │   │   └── Service/     # Interfaces de service (générateur UUID)
+        │   └── Application/
+        │       └── UseCase/     # Use cases
         ├── Infrastructure/
+        │   ├── Service/         # Services concrets (UUID)
         │   └── Persistence/Doctrine/
         │       ├── Entity/      # Entités Doctrine
         │       ├── Repository/  # Implémentations Doctrine
+        │       ├── Adapter/     # Adaptateurs repository (Domaine ↔ Doctrine)
         │       └── Mapper/      # Mappers Domaine ↔ Doctrine
         └── UserInterface/
             ├── Controller/      # Contrôleurs JSON
             ├── DTO/             # DTO de requête
-            └── Presenter/       # Formatage des réponses
+            ├── Presenter/       # Formatage des réponses
+            └── EventSubscriber/ # Gestion globale des exceptions
 ```
 
 ## Démarrage rapide
@@ -98,14 +111,16 @@ make frontend-lint
 
 ### POST /register
 
+Corps de la requête :
 ```json
-// Corps de la requête
 {
   "email": "utilisateur@exemple.com",
   "password": "motdepasse"
 }
+```
 
-// Réponse 201 Created
+Réponse `201 Created` :
+```json
 {
   "id": "uuid",
   "email": "utilisateur@exemple.com"
