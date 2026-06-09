@@ -21,94 +21,94 @@ describe('RegisterForm', () => {
     mockUseRegisterUser.mockReturnValue(defaultHook());
   });
 
-  describe('rendering', () => {
-    it('renders email and password inputs', () => {
+  describe('rendu', () => {
+    it('affiche les champs email et mot de passe', () => {
       render(<RegisterForm />);
 
       expect(screen.getByLabelText('Email')).toBeInTheDocument();
-      expect(screen.getByLabelText('Password')).toBeInTheDocument();
+      expect(screen.getByLabelText('Mot de passe')).toBeInTheDocument();
     });
 
-    it('renders the submit button', () => {
+    it('affiche le bouton de soumission', () => {
       render(<RegisterForm />);
 
-      expect(screen.getByRole('button', { name: 'Create account' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Créer un compte' })).toBeInTheDocument();
     });
 
-    it('does not show an error message by default', () => {
+    it("n'affiche pas de message d'erreur par défaut", () => {
       render(<RegisterForm />);
 
       expect(screen.queryByRole('paragraph')).not.toBeInTheDocument();
     });
   });
 
-  describe('error state', () => {
-    it('displays the error message when error is set', () => {
+  describe("état d'erreur", () => {
+    it("affiche le message d'erreur quand error est défini", () => {
       mockUseRegisterUser.mockReturnValue(
-        defaultHook({ error: 'This email is already registered.' })
+        defaultHook({ error: 'Cette adresse email est déjà utilisée.' })
       );
       render(<RegisterForm />);
 
-      expect(screen.getByText('This email is already registered.')).toBeInTheDocument();
+      expect(screen.getByText('Cette adresse email est déjà utilisée.')).toBeInTheDocument();
     });
   });
 
-  describe('loading state', () => {
-    it('disables the submit button while loading', () => {
+  describe('état de chargement', () => {
+    it('désactive le bouton pendant le chargement', () => {
       mockUseRegisterUser.mockReturnValue(defaultHook({ isLoading: true }));
       render(<RegisterForm />);
 
-      expect(screen.getByRole('button', { name: 'Creating account…' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Création du compte…' })).toBeDisabled();
     });
 
-    it('shows "Creating account…" text while loading', () => {
+    it('affiche "Création du compte…" pendant le chargement', () => {
       mockUseRegisterUser.mockReturnValue(defaultHook({ isLoading: true }));
       render(<RegisterForm />);
 
-      expect(screen.getByText('Creating account…')).toBeInTheDocument();
+      expect(screen.getByText('Création du compte…')).toBeInTheDocument();
     });
   });
 
-  describe('password visibility toggle', () => {
-    it('password input is hidden by default', () => {
+  describe('visibilité du mot de passe', () => {
+    it('le champ mot de passe est masqué par défaut', () => {
       render(<RegisterForm />);
 
-      expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'password');
+      expect(screen.getByLabelText('Mot de passe')).toHaveAttribute('type', 'password');
     });
 
-    it('toggles password visibility when the eye button is clicked', async () => {
+    it('bascule la visibilité au clic sur le bouton œil', async () => {
       const user = userEvent.setup();
       render(<RegisterForm />);
 
-      await user.click(screen.getByRole('button', { name: 'Show password' }));
+      await user.click(screen.getByRole('button', { name: 'Afficher le mot de passe' }));
 
-      expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'text');
+      expect(screen.getByLabelText('Mot de passe')).toHaveAttribute('type', 'text');
     });
 
-    it('hides the password again on second click', async () => {
+    it('remasque le mot de passe au second clic', async () => {
       const user = userEvent.setup();
       render(<RegisterForm />);
 
-      await user.click(screen.getByRole('button', { name: 'Show password' }));
-      await user.click(screen.getByRole('button', { name: 'Hide password' }));
+      await user.click(screen.getByRole('button', { name: 'Afficher le mot de passe' }));
+      await user.click(screen.getByRole('button', { name: 'Masquer le mot de passe' }));
 
-      expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'password');
+      expect(screen.getByLabelText('Mot de passe')).toHaveAttribute('type', 'password');
     });
   });
 
-  describe('form submission', () => {
-    it('calls register with email and password on submit', async () => {
+  describe('soumission', () => {
+    it('appelle register avec email et mot de passe', async () => {
       const mockRegister = vi.fn();
       mockUseRegisterUser.mockReturnValue(defaultHook({ register: mockRegister }));
       const user = userEvent.setup();
       render(<RegisterForm />);
 
-      await user.type(screen.getByLabelText('Email'), 'new@example.com');
-      await user.type(screen.getByLabelText('Password'), 'password123');
-      await user.click(screen.getByRole('button', { name: 'Create account' }));
+      await user.type(screen.getByLabelText('Email'), 'nouveau@exemple.com');
+      await user.type(screen.getByLabelText('Mot de passe'), 'motdepasse123');
+      await user.click(screen.getByRole('button', { name: 'Créer un compte' }));
 
       expect(mockRegister).toHaveBeenCalledOnce();
-      expect(mockRegister).toHaveBeenCalledWith('new@example.com', 'password123');
+      expect(mockRegister).toHaveBeenCalledWith('nouveau@exemple.com', 'motdepasse123');
     });
   });
 });
