@@ -5,12 +5,12 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, CheckSquare, List, Timer, BarChart2, Flame, Moon } from 'lucide-react';
 
 const NAV = [
-  { label: 'Dashboard', href: '/', Icon: LayoutDashboard },
-  { label: 'Task List', href: '/tasks', Icon: CheckSquare },
-  { label: 'Daily List', href: '/daily', Icon: List },
-  { label: 'Focus Mode', href: '/focus', Icon: Timer },
-  { label: 'Analytics', href: '/analytics', Icon: BarChart2 },
-  { label: 'Streaks', href: '/streaks', Icon: Flame },
+  { label: 'Tableau de bord', href: '/', Icon: LayoutDashboard },
+  { label: 'Liste des tâches', href: '/tasks', Icon: CheckSquare },
+  { label: 'Liste quotidienne', href: '/daily', Icon: List },
+  { label: 'Mode Focus', href: '/focus', Icon: Timer },
+  { label: 'Analytique', href: '/analytics', Icon: BarChart2 },
+  { label: 'Séries', href: '/streaks', Icon: Flame },
 ];
 
 export function Sidebar() {
@@ -28,7 +28,7 @@ export function Sidebar() {
         </div>
         <div>
           <p className="text-sm font-semibold leading-tight text-foreground">Focus Stack</p>
-          <p className="text-[10px] leading-tight text-subtle-foreground">Build your focus.</p>
+          <p className="text-[10px] leading-tight text-subtle-foreground">Construisez votre focus.</p>
         </div>
       </div>
 
@@ -55,7 +55,7 @@ export function Sidebar() {
       <div className="px-2 py-4">
         <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-elevated hover:text-foreground">
           <Moon size={15} />
-          Dark Mode
+          Mode sombre
         </button>
         <div className="mt-3 flex items-center gap-1.5 px-3">
           <span className="text-[10px] text-subtle-foreground">Symfony</span>
