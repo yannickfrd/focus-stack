@@ -1,9 +1,9 @@
 import type { RegisterUserRequest } from '@application/Requests/User/RegisterUserRequest';
-import type { UserPort } from '@domain/Ports/User/UserPort';
+import type { UserRegisterPort } from '@domain/Ports/User/UserRegisterPort';
 import type { User } from '@domain/Entities/User/User';
 
 export class RegisterUserUseCase {
-  constructor(private readonly userRepository: UserPort) {}
+  constructor(private readonly userRepository: UserRegisterPort) {}
 
   execute(command: RegisterUserRequest): Promise<User> {
     return this.userRepository.register({
