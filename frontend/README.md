@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Lire ce README en français : [README-FR.md](./README-FR.md)
 
-## Getting Started
+← [Back to root README](../README.md)
 
-First, run the development server:
+# Focus Stack — Frontend
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Next.js 16 application (React 19, TypeScript, Tailwind CSS v4) following hexagonal architecture.
+
+## Tech Stack
+
+| | |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 |
+| Language | TypeScript (strict) |
+| Styling | Tailwind CSS v4 |
+| DI container | Awilix |
+| Server state | TanStack React Query v4 |
+| Forms | React Hook Form |
+| Icons | Lucide React |
+| Testing | Vitest + React Testing Library |
+
+## Architecture
+
+```
+src/
+├── app/                     # Next.js App Router (pages, layouts, providers)
+├── Core/
+│   ├── Domain/
+│   │   ├── Entities/        # Domain entities (pure TypeScript classes)
+│   │   └── Ports/           # Repository interfaces, auth token port
+│   └── Application/
+│       ├── UseCases/        # Use cases (orchestrate domain via ports)
+│       └── Requests/        # Request objects
+├── Infrastructure/
+│   ├── Http/                # API adapters (fetch-based)
+│   ├── Storage/             # Cookie adapter for auth token
+│   └── Di/                  # Awilix DI container setup
+└── UserInterface/
+    ├── Components/          # React components
+    └── Hooks/               # Custom hooks (React Query)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Key rules:**
+- `Core/Domain/` contains only plain TypeScript — no React, no Next.js.
+- Use cases receive dependencies via constructor (injected by Awilix).
+- React Query hooks live in `UserInterface/Hooks/` and call use cases, not API endpoints directly.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+From `focus-stack/frontend/`:
 
-## Learn More
+| Target | Description |
+|--------|-------------|
+| `make install` | `npm install` |
+| `make dev` | Start Next.js dev server (`http://localhost:3000`) |
+| `make build` | Production build |
+| `make start` | Start production server |
+| `make lint` | Run ESLint |
 
-To learn more about Next.js, take a look at the following resources:
+## Backend API
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The frontend communicates with the Symfony backend at `http://127.0.0.1:8000`.  
+See [backend/README.md](../backend/README.md) for all API endpoints.

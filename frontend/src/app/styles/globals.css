@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Backgrounds */
+  --color-background: #0B0F19;
+  --color-card:       #0f172a;
+  --color-elevated:   #1e293b;
+
+  /* Borders */
+  --color-border: #1e293b;
+  --color-input:  #334155;
+
+  /* Text */
+  --color-foreground:        #f1f5f9;
+  --color-muted-foreground:  #94a3b8;
+  --color-subtle-foreground: #64748b;
+
+  /* Accent (violet) */
+  --color-accent:       #7c3aed;
+  --color-accent-hover: #8b5cf6;
+  --color-accent-dim:   #a78bfa;
+}
