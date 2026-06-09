@@ -16,6 +16,7 @@ Symfony 8.0 API (PHP ≥ 8.4, Doctrine ORM, PostgreSQL) following hexagonal arch
 | Database | PostgreSQL 16 |
 | Serialization | Symfony Serializer |
 | Validation | Symfony Validator |
+| Auth | Symfony Security + LexikJWTAuthenticationBundle |
 | CORS | NelmioCorsBundle |
 | UUID | Symfony UID |
 | Testing | PHPUnit 13 |
@@ -48,7 +49,7 @@ src/
 **Key rules:**
 - `Core/Domain/` entities are pure POPOs — never import Doctrine there.
 - Dependency injection uses Domain interfaces, not Infrastructure implementations.
-- PHP 8 attributes only — no YAML/XML config.
+- PHP 8 attributes for routing and validation — YAML only for security and bundle config.
 
 ## Commands
 
@@ -71,6 +72,7 @@ From `focus-stack/backend/`:
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/register` | Register a new user |
+| `POST` | `/login` | Authenticate and receive a JWT token |
 
 ### POST /register
 
@@ -82,13 +84,45 @@ Request body:
 }
 ```
 
-Response `201 Created`:
+Response `204 No Content` (empty body)
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation failed (blank field, invalid email format, password too short) |
+| `409` | Email already registered |
+
+### POST /login
+
+Request body:
 ```json
 {
-  "id": "uuid",
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "password": "secret"
 }
 ```
+
+Response `200 OK`:
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com"
+  }
+}
+```
+
+Token is valid for **3600 seconds (1 hour)** — configurable via `token_ttl` in `config/packages/lexik_jwt_authentication.yaml`.
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Invalid credentials (email not found or wrong password) |
+
+> Handled by Symfony Security (`json_login`) — no custom controller needed.
 
 ## Environment
 
@@ -97,3 +131,8 @@ Configuration in `.env` — never commit `.env.local`.
 | Variable | Value |
 |----------|-------|
 | `DATABASE_URL` | `postgresql://app:password@127.0.0.1:5432/focus_stack` |
+| `JWT_SECRET_KEY` | `%kernel.project_dir%/config/jwt/private.pem` |
+| `JWT_PUBLIC_KEY` | `%kernel.project_dir%/config/jwt/public.pem` |
+| `JWT_PASSPHRASE` | *(generated on install)* |
+
+JWT keys are generated locally with `php bin/console lexik:jwt:generate-keypair` — never commit `config/jwt/`.

@@ -6,7 +6,6 @@ namespace App\UserInterface\Controller;
 
 use App\Core\Application\UseCase\User\RegisterUserUseCase;
 use App\UserInterface\DTO\User\RegisterUserRequest;
-use App\UserInterface\Presenter\User\RegisterUserPresenter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,17 +16,19 @@ final class UserController extends AbstractController
 {
     public function __construct(
         private readonly RegisterUserUseCase $registerUserUseCase,
-        private readonly RegisterUserPresenter $presenter,
     ) {}
+
+    #[Route('/login', name: 'user_login', methods: ['POST'])]
+    public function login(): never
+    {
+        throw new \LogicException('Intercepted by the security firewall.');
+    }
 
     #[Route('/register', name: 'user_register', methods: ['POST'])]
     public function register(#[MapRequestPayload] RegisterUserRequest $request): JsonResponse
     {
-        $user = $this->registerUserUseCase->execute($request->email, $request->password);
+        $this->registerUserUseCase->execute($request->email, $request->password);
 
-        return $this->json(
-            $this->presenter->present($user),
-            Response::HTTP_CREATED
-        );
+        return $this->json(null, Response::HTTP_NO_CONTENT);
     }
 }
