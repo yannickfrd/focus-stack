@@ -13,7 +13,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (!isPublic && !session) {
-    return NextResponse.redirect(new URL('/register', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();
