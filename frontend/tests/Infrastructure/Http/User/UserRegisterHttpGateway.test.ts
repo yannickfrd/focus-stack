@@ -62,7 +62,7 @@ describe('UserRegisterHttpGateway', () => {
 
       await expect(
         new UserRegisterHttpGateway().register({ email: 'x@example.com', password: 'pass' })
-      ).rejects.toThrow('Registration failed.');
+      ).rejects.toThrow('Request failed.');
     });
 
     it('lève le message par défaut quand le corps JSON est invalide', async () => {
@@ -70,7 +70,7 @@ describe('UserRegisterHttpGateway', () => {
 
       await expect(
         new UserRegisterHttpGateway().register({ email: 'x@example.com', password: 'pass' })
-      ).rejects.toThrow('Registration failed.');
+      ).rejects.toThrow('Request failed.');
     });
   });
 });
