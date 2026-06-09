@@ -1,4 +1,4 @@
-const AUTH_PATHS = ['/login', '/register'];
+import { PUBLIC_PATHS } from '@/config/publicPaths';
 
 export abstract class AbstractHttpGateway {
   protected readonly baseUrl: string;
@@ -26,7 +26,7 @@ export abstract class AbstractHttpGateway {
     };
 
     if (!res.ok) {
-      if (res.status === 401 && !AUTH_PATHS.includes(path)) {
+      if (res.status === 401 && !PUBLIC_PATHS.includes(path)) {
         document.cookie = 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         window.location.href = '/login';
       }
