@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Sidebar } from '@ui/Components/Layout/Sidebar';
+import { CheckIcon } from '@ui/Components/Icons/CheckIcon';
 
 export const metadata: Metadata = { title: 'Tableau de bord — Focus Stack' };
 
@@ -96,11 +97,7 @@ export default function DashboardPage() {
                     <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                       t.done ? 'border-accent bg-accent' : 'border-input'
                     }`}>
-                      {t.done && (
-                        <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 10 8" fill="none">
-                          <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
+                      {t.done && <CheckIcon className="h-2.5 w-2.5 text-white" />}
                     </div>
                     <span className={`flex-1 text-sm ${t.done ? 'text-subtle-foreground line-through' : 'text-foreground/70'}`}>
                       {t.title}

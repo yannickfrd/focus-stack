@@ -16,7 +16,7 @@
   --color-subtle-foreground: #64748b;
 
   /* Accent (violet) */
-  --color-accent:      #7c3aed;
+  --color-accent:       #7c3aed;
   --color-accent-hover: #8b5cf6;
-  --color-accent-dim:  #a78bfa;
+  --color-accent-dim:   #a78bfa;
 }

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, CheckSquare, List, Timer, BarChart2, Flame, Moon } from 'lucide-react';
+import { LogoIcon } from '@ui/Components/Icons/LogoIcon';
 
 const NAV = [
   { label: 'Tableau de bord', href: '/', Icon: LayoutDashboard },
@@ -20,11 +21,7 @@ export function Sidebar() {
     <aside className="flex h-screen w-52 shrink-0 flex-col border-r border-border bg-card">
       <div className="flex items-center gap-2.5 px-4 py-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
-          <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" stroke="currentColor" strokeWidth={2.5}>
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5" />
-            <path d="M2 12l10 5 10-5" />
-          </svg>
+          <LogoIcon className="h-4 w-4 text-white" />
         </div>
         <div>
           <p className="text-sm font-semibold leading-tight text-foreground">Focus Stack</p>
