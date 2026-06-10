@@ -25,6 +25,8 @@ export function useLoginUser() {
   return {
     login: (email: string, password: string) => mutate({ email, password }),
     isLoading: isPending,
-    error: error instanceof Error ? error.message : null,
+    error: error instanceof Error
+      ? (error.message === 'Invalid credentials.' ? 'Email ou mot de passe incorrect.' : error.message)
+      : null,
   };
 }

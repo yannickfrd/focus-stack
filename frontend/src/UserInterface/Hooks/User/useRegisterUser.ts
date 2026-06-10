@@ -22,6 +22,8 @@ export function useRegisterUser() {
   return {
     register: (email: string, password: string) => mutate({ email, password }),
     isLoading: isPending,
-    error: error instanceof Error ? error.message : null,
+    error: error instanceof Error
+      ? (error.message === 'This email is already registered.' ? 'Cette adresse email est déjà utilisée.' : error.message)
+      : null,
   };
 }
