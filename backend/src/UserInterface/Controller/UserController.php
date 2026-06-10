@@ -24,6 +24,12 @@ final class UserController extends AbstractController
         throw new \LogicException('Intercepted by the security firewall.');
     }
 
+    #[Route('/logout', name: 'user_logout', methods: ['POST'])]
+    public function logout(): JsonResponse
+    {
+        return $this->json(null, Response::HTTP_NO_CONTENT);
+    }
+
     #[Route('/register', name: 'user_register', methods: ['POST'])]
     public function register(#[MapRequestPayload] RegisterUserRequest $request): JsonResponse
     {

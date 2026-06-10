@@ -22,8 +22,10 @@ security:
                 password_path: password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            jwt: ~
 
-    access_control: []
+    access_control:
+        - { path: ^/logout$, roles: ROLE_USER }
 
 when@test:
     security:
