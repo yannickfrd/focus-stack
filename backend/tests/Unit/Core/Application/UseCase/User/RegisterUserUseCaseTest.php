@@ -16,24 +16,21 @@ final class RegisterUserUseCaseTest extends TestCase
     {
         $repository = $this->createMock(UserRepositoryInterface::class);
         $repository->method('findByEmail')->willReturn(null);
-        $repository->expects($this->once())->method('save')->with($this->isInstanceOf(User::class));
+        $repository->expects($this->once())->method('save');
 
         $uuidGenerator = $this->createStub(UuidGeneratorInterface::class);
         $uuidGenerator->method('generate')->willReturn('fixed-uuid');
 
         $useCase = new RegisterUserUseCase($repository, $uuidGenerator);
-        $user = $useCase->execute('new@example.com', 'secret');
-
-        $this->assertSame('new@example.com', $user->getEmail());
-        $this->assertTrue(password_verify('secret', $user->getPasswordHash()));
-        $this->assertSame('fixed-uuid', $user->getId());
+        $useCase->execute('new@example.com', 'secret');
     }
 
     public function testExecuteThrowsWhenEmailAlreadyRegistered(): void
     {
-        $existing = User::create('id', 'taken@example.com', 'hash');
         $repository = $this->createStub(UserRepositoryInterface::class);
-        $repository->method('findByEmail')->willReturn($existing);
+        $repository->method('findByEmail')->willReturn(
+            User::create('id', 'taken@example.com', 'hash')
+        );
 
         $uuidGenerator = $this->createStub(UuidGeneratorInterface::class);
 

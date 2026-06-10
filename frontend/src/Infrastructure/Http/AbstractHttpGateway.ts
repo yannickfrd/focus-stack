@@ -1,3 +1,5 @@
+import { PUBLIC_PATHS } from '@/config/publicPaths';
+
 export abstract class AbstractHttpGateway {
   protected readonly baseUrl: string;
 
@@ -18,12 +20,21 @@ export abstract class AbstractHttpGateway {
       headers: this.defaultHeaders,
     });
 
+    const text = await res.text().catch(() => '');
+    const parsed = <U>(): U => {
+      try { return text ? (JSON.parse(text) as U) : ({} as U); } catch { return {} as U; }
+    };
+
     if (!res.ok) {
-      const body: { error?: string } = await res.json().catch(() => ({}));
-      throw new Error(body.error ?? 'Request failed.');
+      if (res.status === 401 && !PUBLIC_PATHS.includes(path)) {
+        document.cookie = 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        window.location.href = '/login';
+      }
+      const body = parsed<{ error?: string; message?: string }>();
+      throw new Error(body.error ?? body.message ?? 'Request failed.');
     }
 
-    return res.json() as Promise<T>;
+    return (text ? JSON.parse(text) : undefined) as T;
   }
 
   protected get<T>(path: string): Promise<T> {

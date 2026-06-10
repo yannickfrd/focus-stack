@@ -58,6 +58,16 @@ From `focus-stack/frontend/`:
 | `make start` | Start production server |
 | `make lint` | Run ESLint |
 
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Tableau de bord (protégé) |
+| `/login` | Connexion — `POST /login` → JWT stocké en cookie |
+| `/register` | Inscription — `POST /register` → redirection vers `/` |
+
+Toute route non publique redirige vers `/login` si aucun cookie de session n'est présent.
+
 ## Backend API
 
 The frontend communicates with the Symfony backend at `http://127.0.0.1:8000`.  

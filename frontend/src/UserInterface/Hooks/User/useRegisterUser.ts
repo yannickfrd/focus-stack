@@ -5,10 +5,8 @@ import { useRouter } from 'next/navigation';
 import { RegisterUserRequest } from '@application/Requests/User/RegisterUserRequest';
 import { RegisterUserUseCase } from '@application/UseCases/User/RegisterUserUseCase';
 import { container } from '@infrastructure/Di/container';
-import type { AuthTokenPort } from '@domain/Ports/Auth/AuthTokenPort';
 
 const useCase = container.resolve<RegisterUserUseCase>('registerUserUseCase');
-const authToken = container.resolve<AuthTokenPort>('authToken');
 
 export function useRegisterUser() {
   const router = useRouter();
@@ -16,15 +14,16 @@ export function useRegisterUser() {
   const { mutate, isPending, error } = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       useCase.execute(new RegisterUserRequest(email, password)),
-    onSuccess: (user) => {
-      authToken.store(user.id);
-      router.push('/');
+    onSuccess: () => {
+      router.push('/login');
     },
   });
 
   return {
     register: (email: string, password: string) => mutate({ email, password }),
     isLoading: isPending,
-    error: error instanceof Error ? error.message : null,
+    error: error instanceof Error
+      ? (error.message === 'This email is already registered.' ? 'Cette adresse email est déjà utilisée.' : error.message)
+      : null,
   };
 }

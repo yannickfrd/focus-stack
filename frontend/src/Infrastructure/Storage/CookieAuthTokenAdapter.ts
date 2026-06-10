@@ -2,7 +2,7 @@ import type { AuthTokenPort } from '@domain/Ports/Auth/AuthTokenPort';
 
 export class CookieAuthTokenAdapter implements AuthTokenPort {
   store(userId: string): void {
-    document.cookie = `session=${userId}; path=/; SameSite=Strict; Max-Age=${60 * 60 * 24 * 7}`;
+    document.cookie = `session=${userId}; path=/; SameSite=Strict; Max-Age=3600`;
   }
 
   clear(): void {

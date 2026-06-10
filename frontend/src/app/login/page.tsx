@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { RegisterForm } from '@ui/Components/User/RegisterForm';
+import { LoginForm } from '@ui/Components/User/LoginForm';
 import { LogoIcon } from '@ui/Components/Icons/LogoIcon';
 
-export const metadata: Metadata = { title: 'Inscription — Focus Stack' };
+export const metadata: Metadata = { title: 'Connexion — Focus Stack' };
 
-export default function RegisterPage() {
+export default function LoginPage() {
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background">
       <div className="mb-8 flex items-center gap-3">
@@ -19,19 +19,19 @@ export default function RegisterPage() {
       </div>
 
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8">
-        <h1 className="mb-1 text-xl font-semibold text-foreground">Créer un compte</h1>
-        <p className="mb-6 text-sm text-muted-foreground">Commencez à construire votre focus dès aujourd&apos;hui.</p>
-        <RegisterForm />
+        <h1 className="mb-1 text-xl font-semibold text-foreground">Se connecter</h1>
+        <p className="mb-6 text-sm text-muted-foreground">Bienvenue, content de vous revoir.</p>
+        <LoginForm />
         <div className="mt-6 rounded-xl border border-border bg-elevated px-4 py-3 text-center">
-          <p className="text-xs font-medium text-foreground/80">Déjà inscrit ?</p>
+          <p className="text-xs font-medium text-foreground/80">Pas encore de compte ?</p>
           <p className="mt-0.5 text-xs text-subtle-foreground">
-            Retrouvez votre espace de travail et reprenez là où vous en étiez.
+            Créez votre espace en quelques secondes et commencez à construire votre focus.
           </p>
           <Link
-            href="/login"
+            href="/register"
             className="mt-2 inline-block text-xs font-medium text-accent-dim transition-colors hover:text-accent-hover"
           >
-            Se connecter →
+            Créer un compte →
           </Link>
         </div>
       </div>

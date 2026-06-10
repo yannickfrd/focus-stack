@@ -15,20 +15,16 @@ final readonly class RegisterUserUseCase
         private UuidGeneratorInterface $uuidGenerator,
     ) {}
 
-    public function execute(string $email, string $password): User
+    public function execute(string $email, string $password): void
     {
         if ($this->userRepository->findByEmail($email) !== null) {
             throw new \DomainException('This email is already registered.');
         }
 
-        $user = User::create(
+        $this->userRepository->save(User::create(
             id: $this->uuidGenerator->generate(),
             email: $email,
             passwordHash: password_hash($password, PASSWORD_BCRYPT),
-        );
-
-        $this->userRepository->save($user);
-
-        return $user;
+        ));
     }
 }

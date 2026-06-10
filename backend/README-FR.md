@@ -18,6 +18,7 @@ API Symfony 8.0 (PHP ≥ 8.4, Doctrine ORM, PostgreSQL) suivant l'architecture h
 | Validation | Symfony Validator |
 | CORS | NelmioCorsBundle |
 | UUID | Symfony UID |
+| Authentification | Symfony Security + LexikJWTAuthenticationBundle |
 | Tests | PHPUnit 13 |
 
 ## Architecture
@@ -48,7 +49,7 @@ src/
 **Règles clés :**
 - Les entités `Core/Domain/` sont des POPO purs — jamais d'import Doctrine.
 - L'injection de dépendance utilise les interfaces Domain, pas les implémentations Infrastructure.
-- Attributs PHP 8 uniquement — pas de config YAML/XML.
+- Attributs PHP 8 pour le routing et la validation — YAML uniquement pour la sécurité et la config des bundles.
 
 ## Commandes
 
@@ -71,6 +72,7 @@ Depuis `focus-stack/backend/` :
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
 | `POST` | `/register` | Créer un compte utilisateur |
+| `POST` | `/login` | S'authentifier et recevoir un token JWT |
 
 ### POST /register
 
@@ -82,13 +84,45 @@ Corps de la requête :
 }
 ```
 
-Réponse `201 Created` :
+Réponse `204 No Content` (corps vide)
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation échouée (champ vide, format email invalide, mot de passe trop court) |
+| `409` | Email déjà enregistré |
+
+### POST /login
+
+Corps de la requête :
 ```json
 {
-  "id": "uuid",
-  "email": "utilisateur@exemple.com"
+  "email": "utilisateur@exemple.com",
+  "password": "motdepasse"
 }
 ```
+
+Réponse `200 OK` :
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+  "user": {
+    "id": "uuid",
+    "email": "utilisateur@exemple.com"
+  }
+}
+```
+
+Le token est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Identifiants invalides (email introuvable ou mot de passe incorrect) |
+
+> Géré par Symfony Security (`json_login`) — aucun controller custom nécessaire.
 
 ## Environnement
 
@@ -97,3 +131,8 @@ Configuration dans `.env` — ne jamais committer `.env.local`.
 | Variable | Valeur |
 |----------|--------|
 | `DATABASE_URL` | `postgresql://app:password@127.0.0.1:5432/focus_stack` |
+| `JWT_SECRET_KEY` | `%kernel.project_dir%/config/jwt/private.pem` |
+| `JWT_PUBLIC_KEY` | `%kernel.project_dir%/config/jwt/public.pem` |
+| `JWT_PASSPHRASE` | *(généré à l'installation)* |
+
+Les clés JWT sont générées localement avec `php bin/console lexik:jwt:generate-keypair` — ne jamais committer `config/jwt/`.
