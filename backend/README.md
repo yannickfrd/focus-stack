@@ -73,6 +73,7 @@ From `focus-stack/backend/`:
 |--------|------|-------------|
 | `POST` | `/register` | Register a new user |
 | `POST` | `/login` | Authenticate and receive a JWT token |
+| `POST` | `/logout` | Invalidate session (client discards token) |
 
 ### POST /register
 
@@ -123,6 +124,20 @@ Error responses:
 | `401` | Invalid credentials (email not found or wrong password) |
 
 > Handled by Symfony Security (`json_login`) — no custom controller needed.
+
+### POST /logout
+
+Requires a valid JWT in the `Authorization: Bearer <token>` header.
+
+Response `204 No Content` (empty body)
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Missing or invalid JWT token |
+
+> The token is not server-side invalidated (stateless JWT). The client is responsible for discarding it.
 
 ## Environment
 
