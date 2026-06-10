@@ -8,10 +8,13 @@ export abstract class AbstractHttpGateway {
   }
 
   private get defaultHeaders(): Record<string, string> {
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
+    const token = document.cookie.match(/(?:^|;\s*)session=([^;]+)/)?.[1];
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
   }
 
   private async request<T>(path: string, options: RequestInit): Promise<T> {

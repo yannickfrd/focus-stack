@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, CheckSquare, List, Timer, BarChart2, Flame, Moon } from 'lucide-react';
 import { LogoIcon } from '@ui/Components/Icons/LogoIcon';
+import { LogoutButton } from '@ui/Components/User/LogoutButton';
 
 const NAV = [
   { label: 'Tableau de bord', href: '/', Icon: LayoutDashboard },
@@ -54,6 +55,7 @@ export function Sidebar() {
           <Moon size={15} />
           Mode sombre
         </button>
+        <LogoutButton />
         <div className="mt-3 flex items-center gap-1.5 px-3">
           <span className="text-[10px] text-subtle-foreground">Symfony</span>
           <span className="text-[10px] text-border">·</span>
