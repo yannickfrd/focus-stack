@@ -13,6 +13,7 @@ const mockFetch = (status: number, body: string | null = null, rejectText = fals
 
 const loginResponse = JSON.stringify({
   token: 'jwt.token.here',
+  refresh_token: 'refresh.token.here',
   user: { id: 'uuid-1', email: 'user@example.com' },
 });
 
@@ -46,7 +47,7 @@ describe('UserLoginHttpGateway', () => {
         password: 'password123',
       });
 
-      expect(result).toEqual({ token: 'jwt.token.here', user: { id: 'uuid-1', email: 'user@example.com' } });
+      expect(result).toEqual({ token: 'jwt.token.here', refresh_token: 'refresh.token.here', user: { id: 'uuid-1', email: 'user@example.com' } });
     });
   });
 

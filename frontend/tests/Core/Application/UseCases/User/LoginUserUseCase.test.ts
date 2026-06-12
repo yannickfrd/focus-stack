@@ -5,6 +5,7 @@ import type { UserLoginPort, LoginResult } from '@domain/Ports/User/UserLoginPor
 
 const makeResult = (overrides: Partial<LoginResult> = {}): LoginResult => ({
   token: 'jwt.token.here',
+  refresh_token: 'refresh.token.here',
   user: { id: 'uuid-1', email: 'test@example.com' },
   ...overrides,
 });

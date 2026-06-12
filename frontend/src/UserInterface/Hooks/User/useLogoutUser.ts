@@ -16,10 +16,12 @@ export function useLogoutUser() {
     mutationFn: () => useCase.execute(),
     onSuccess: () => {
       authToken.clear();
+      authToken.clearRefreshToken();
       router.push('/login');
     },
     onError: () => {
       authToken.clear();
+      authToken.clearRefreshToken();
       router.push('/login');
     },
   });

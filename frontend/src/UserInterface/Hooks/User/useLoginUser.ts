@@ -18,6 +18,7 @@ export function useLoginUser() {
       useCase.execute(new LoginUserRequest(email, password)),
     onSuccess: (result) => {
       authToken.store(result.token);
+      authToken.storeRefreshToken(result.refresh_token);
       router.push('/');
     },
   });

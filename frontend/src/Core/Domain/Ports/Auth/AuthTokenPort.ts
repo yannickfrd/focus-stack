@@ -1,4 +1,6 @@
 export interface AuthTokenPort {
-  store(userId: string): void;
+  store(token: string): void;
   clear(): void;
+  storeRefreshToken(token: string): void;
+  clearRefreshToken(): void;
 }

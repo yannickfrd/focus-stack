@@ -58,6 +58,22 @@ Depuis `focus-stack/frontend/` :
 | `make start` | Démarre le serveur de production |
 | `make lint` | Lance ESLint |
 
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Tableau de bord (protégé) |
+| `/login` | Connexion — `POST /login` → JWT + refresh token stockés en cookie |
+| `/register` | Inscription — `POST /register` → redirection vers `/login` |
+
+Toute route non publique redirige vers `/login` si aucun cookie de session n'est présent.
+
+## Comportements transversaux
+
+**Déconnexion** — un bouton "Se déconnecter" est visible dans la sidebar sur toutes les pages protégées. Il appelle `POST /logout`, efface le cookie `session` et le cookie `refresh_token`, puis redirige vers `/login`.
+
+**Renouvellement automatique du token** — lorsqu'une requête authentifiée reçoit un `401`, le client tente silencieusement un `POST /token/refresh`. En cas de succès, les deux cookies sont renouvelés et la requête initiale est rejouée. En cas d'échec, les cookies sont effacés et l'utilisateur est redirigé vers `/login`.
+
 ## API Backend
 
 Le frontend communique avec l'API Symfony sur `http://127.0.0.1:8000`.  
