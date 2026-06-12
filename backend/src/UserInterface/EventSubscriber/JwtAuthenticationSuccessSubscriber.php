@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\UserInterface\EventSubscriber;
 
+use App\Core\Application\UseCase\RefreshToken\CreateRefreshTokenUseCase;
 use App\Infrastructure\Persistence\Doctrine\Entity\UserEntity;
 use App\UserInterface\Presenter\User\AuthenticationSuccessPresenter;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
@@ -14,6 +15,7 @@ final readonly class JwtAuthenticationSuccessSubscriber implements EventSubscrib
 {
     public function __construct(
         private AuthenticationSuccessPresenter $presenter,
+        private CreateRefreshTokenUseCase $createRefreshTokenUseCase,
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -29,8 +31,11 @@ final readonly class JwtAuthenticationSuccessSubscriber implements EventSubscrib
             return;
         }
 
+        $refreshToken = $this->createRefreshTokenUseCase->execute($user->getId());
+
         $data = $event->getData();
         $data['user'] = $this->presenter->present($user);
+        $data['refresh_token'] = $refreshToken->getToken();
         $event->setData($data);
     }
 }

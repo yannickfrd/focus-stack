@@ -74,6 +74,7 @@ Depuis `focus-stack/backend/` :
 | `POST` | `/register` | Créer un compte utilisateur |
 | `POST` | `/login` | S'authentifier et recevoir un token JWT |
 | `POST` | `/logout` | Invalider la session (le client supprime le token) |
+| `POST` | `/token/refresh` | Échanger un refresh token contre un nouveau JWT + nouveau refresh token |
 
 ### POST /register
 
@@ -108,6 +109,7 @@ Réponse `200 OK` :
 ```json
 {
   "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+  "refresh_token": "550e8400-e29b-41d4-a716-446655440000",
   "user": {
     "id": "uuid",
     "email": "utilisateur@exemple.com"
@@ -115,7 +117,7 @@ Réponse `200 OK` :
 }
 ```
 
-Le token est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
+Le JWT est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
 
 Réponses d'erreur :
 
@@ -138,6 +140,32 @@ Réponses d'erreur :
 | `401` | Token JWT absent ou invalide |
 
 > Le token n'est pas invalidé côté serveur (JWT stateless). Le client est responsable de le supprimer.
+
+### POST /token/refresh
+
+Corps de la requête :
+```json
+{
+  "refresh_token": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+Réponse `200 OK` :
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+  "refresh_token": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+}
+```
+
+L'ancien refresh token est **invalidé** et un nouveau est émis (rotation). Les refresh tokens sont valides **30 jours**.
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Champ `refresh_token` absent ou vide |
+| `401` | Refresh token introuvable, expiré, ou utilisateur associé supprimé |
 
 ## Environnement
 
