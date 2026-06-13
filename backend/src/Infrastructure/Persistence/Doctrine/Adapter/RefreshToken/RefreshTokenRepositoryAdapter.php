@@ -8,7 +8,9 @@ use App\Core\Domain\Entity\RefreshToken\RefreshToken;
 use App\Core\Domain\Repository\RefreshToken\RefreshTokenRepositoryInterface;
 use App\Infrastructure\Persistence\Doctrine\Mapper\RefreshToken\RefreshTokenMapper;
 use App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRefreshTokenRepository;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+#[AsAlias(RefreshTokenRepositoryInterface::class)]
 final readonly class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryInterface
 {
     public function __construct(

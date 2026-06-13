@@ -19,8 +19,3 @@ services:
     App\:
         resource: '../src/'
 
-    App\Core\Domain\Repository\User\UserRepositoryInterface:
-        class: App\Infrastructure\Persistence\Doctrine\Adapter\User\UserRepositoryAdapter
-
-    App\Core\Domain\Repository\RefreshToken\RefreshTokenRepositoryInterface:
-        class: App\Infrastructure\Persistence\Doctrine\Adapter\RefreshToken\RefreshTokenRepositoryAdapter
