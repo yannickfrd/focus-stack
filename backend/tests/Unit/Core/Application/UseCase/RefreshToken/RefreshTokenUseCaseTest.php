@@ -9,6 +9,7 @@ use App\Core\Application\UseCase\RefreshToken\CreateRefreshTokenUseCase;
 use App\Core\Application\UseCase\RefreshToken\RefreshTokenUseCase;
 use App\Core\Domain\Entity\RefreshToken\RefreshToken;
 use App\Core\Domain\Entity\User\User;
+use App\Core\Domain\Exception\UnauthorizedException;
 use App\Core\Domain\Repository\RefreshToken\RefreshTokenRepositoryInterface;
 use App\Core\Domain\Repository\User\UserRepositoryInterface;
 use App\Core\Domain\Service\AccessTokenGeneratorInterface;
@@ -61,7 +62,7 @@ final class RefreshTokenUseCaseTest extends TestCase
     {
         $this->refreshTokenRepository->method('findByToken')->willReturn(null);
 
-        $this->expectException(\DomainException::class);
+        $this->expectException(UnauthorizedException::class);
         $this->expectExceptionMessage('Refresh token not found.');
 
         $this->useCase->execute('invalid-token');
@@ -72,7 +73,7 @@ final class RefreshTokenUseCaseTest extends TestCase
         $expired = RefreshToken::create('id', 'user-id', new \DateTimeImmutable('-1 second'));
         $this->refreshTokenRepository->method('findByToken')->willReturn($expired);
 
-        $this->expectException(\DomainException::class);
+        $this->expectException(UnauthorizedException::class);
         $this->expectExceptionMessage('Refresh token has expired.');
 
         $this->useCase->execute('id');
@@ -84,7 +85,7 @@ final class RefreshTokenUseCaseTest extends TestCase
         $this->refreshTokenRepository->method('findByToken')->willReturn($token);
         $this->userRepository->method('findById')->willReturn(null);
 
-        $this->expectException(\DomainException::class);
+        $this->expectException(UnauthorizedException::class);
         $this->expectExceptionMessage('User not found.');
 
         $this->useCase->execute('id');

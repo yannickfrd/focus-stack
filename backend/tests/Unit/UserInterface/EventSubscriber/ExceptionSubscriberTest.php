@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\UserInterface\EventSubscriber;
 
+use App\Core\Domain\Exception\UnauthorizedException;
 use App\UserInterface\EventSubscriber\ExceptionSubscriber;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -34,6 +35,11 @@ final class ExceptionSubscriberTest extends TestCase
     public static function exceptionProvider(): array
     {
         return [
+            'UnauthorizedException returns 401 with original message' => [
+                new UnauthorizedException('Refresh token not found.'),
+                401,
+                'Refresh token not found.',
+            ],
             'DomainException returns 409 with original message' => [
                 new \DomainException('Email already taken.'),
                 409,

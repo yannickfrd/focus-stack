@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Application\UseCase\RefreshToken;
 
 use App\Core\Application\Response\RefreshTokenResponse;
+use App\Core\Domain\Exception\UnauthorizedException;
 use App\Core\Domain\Repository\RefreshToken\RefreshTokenRepositoryInterface;
 use App\Core\Domain\Repository\User\UserRepositoryInterface;
 use App\Core\Domain\Service\AccessTokenGeneratorInterface;
@@ -23,17 +24,17 @@ final readonly class RefreshTokenUseCase
         $existing = $this->refreshTokenRepository->findByToken($tokenValue);
 
         if ($existing === null) {
-            throw new \DomainException('Refresh token not found.');
+            throw new UnauthorizedException('Refresh token not found.');
         }
 
         if ($existing->isExpired()) {
-            throw new \DomainException('Refresh token has expired.');
+            throw new UnauthorizedException('Refresh token has expired.');
         }
 
         $user = $this->userRepository->findById($existing->getUserId());
 
         if ($user === null) {
-            throw new \DomainException('User not found.');
+            throw new UnauthorizedException('User not found.');
         }
 
         $newAccessToken = $this->accessTokenGenerator->generate($user->getEmail());

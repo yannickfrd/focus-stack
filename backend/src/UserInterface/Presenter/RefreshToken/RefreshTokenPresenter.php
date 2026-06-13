@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Presenter\RefreshToken;
 
+use App\Core\Application\Response\RefreshTokenResponse;
 use App\Core\Domain\Entity\RefreshToken\RefreshToken;
 
 final class RefreshTokenPresenter
 {
-    public function present(string $accessToken, RefreshToken $refreshToken): array
+    public function present(RefreshTokenResponse $response): array
     {
         return [
-            'token' => $accessToken,
-            'refresh_token' => $refreshToken->getToken(),
+            'token' => $response->accessToken,
+            'refresh_token' => $response->refreshToken,
         ];
     }
 }
