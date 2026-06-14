@@ -13,4 +13,6 @@ interface RefreshTokenRepositoryInterface
     public function findByToken(string $token): ?RefreshToken;
 
     public function deleteByToken(string $token): void;
+
+    public function deleteByUserId(string $userId): void;
 }

@@ -12,6 +12,8 @@ use App\UserInterface\Presenter\User\AuthenticationSuccessPresenter;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\InMemoryUser;
 
@@ -27,9 +29,13 @@ final class JwtAuthenticationSuccessSubscriberTest extends TestCase
             RefreshToken::create('fixed-uuid', 'user-id', new \DateTimeImmutable('+30 days'))
         );
 
+        $requestStack = $this->createStub(RequestStack::class);
+        $requestStack->method('getCurrentRequest')->willReturn(Request::create('/login'));
+
         $this->subscriber = new JwtAuthenticationSuccessSubscriber(
             new AuthenticationSuccessPresenter(),
             $this->createRefreshTokenUseCase,
+            $requestStack,
         );
     }
 
@@ -38,7 +44,7 @@ final class JwtAuthenticationSuccessSubscriberTest extends TestCase
         $this->assertArrayHasKey(Events::AUTHENTICATION_SUCCESS, JwtAuthenticationSuccessSubscriber::getSubscribedEvents());
     }
 
-    public function testAddsUserDataAndRefreshTokenToResponseOnSuccess(): void
+    public function testAddsUserDataToResponseAndSetsRefreshTokenCookie(): void
     {
         $user = $this->makeUserEntity('uuid-1', 'user@example.com');
         $event = new AuthenticationSuccessEvent(['token' => 'jwt.token'], $user, new Response());
@@ -48,7 +54,13 @@ final class JwtAuthenticationSuccessSubscriberTest extends TestCase
         $data = $event->getData();
         $this->assertSame('jwt.token', $data['token']);
         $this->assertSame(['id' => 'uuid-1', 'email' => 'user@example.com'], $data['user']);
-        $this->assertSame('fixed-uuid', $data['refresh_token']);
+        $this->assertArrayNotHasKey('refresh_token', $data);
+
+        $cookies = $event->getResponse()->headers->getCookies();
+        $this->assertCount(1, $cookies);
+        $this->assertSame('refresh_token', $cookies[0]->getName());
+        $this->assertSame('fixed-uuid', $cookies[0]->getValue());
+        $this->assertTrue($cookies[0]->isHttpOnly());
     }
 
     public function testIgnoresNonUserEntityUsers(): void
@@ -59,7 +71,7 @@ final class JwtAuthenticationSuccessSubscriberTest extends TestCase
         $this->subscriber->onAuthenticationSuccess($event);
 
         $this->assertArrayNotHasKey('user', $event->getData());
-        $this->assertArrayNotHasKey('refresh_token', $event->getData());
+        $this->assertEmpty($event->getResponse()->headers->getCookies());
     }
 
     public function testPresenterIsCalledWithTheAuthenticatedUser(): void
@@ -68,7 +80,9 @@ final class JwtAuthenticationSuccessSubscriberTest extends TestCase
         $presenter = $this->createMock(AuthenticationSuccessPresenter::class);
         $presenter->expects($this->once())->method('present')->with($user)->willReturn(['id' => 'uuid-2', 'email' => 'me@example.com']);
 
-        $subscriber = new JwtAuthenticationSuccessSubscriber($presenter, $this->createRefreshTokenUseCase);
+        $requestStack = $this->createStub(RequestStack::class);
+
+        $subscriber = new JwtAuthenticationSuccessSubscriber($presenter, $this->createRefreshTokenUseCase, $requestStack);
         $event = new AuthenticationSuccessEvent(['token' => 'jwt'], $user, new Response());
         $subscriber->onAuthenticationSuccess($event);
     }

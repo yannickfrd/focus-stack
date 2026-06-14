@@ -33,4 +33,9 @@ final readonly class RefreshTokenRepositoryAdapter implements RefreshTokenReposi
     {
         $this->repository->deleteByToken($token);
     }
+
+    public function deleteByUserId(string $userId): void
+    {
+        $this->repository->deleteByUserId($userId);
+    }
 }

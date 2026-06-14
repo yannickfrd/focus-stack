@@ -57,6 +57,14 @@ final class RefreshTokenRepositoryAdapterTest extends TestCase
         (new RefreshTokenRepositoryAdapter($repository))->deleteByToken('uuid-1');
     }
 
+    public function testDeleteByUserIdDelegatesToRepository(): void
+    {
+        $repository = $this->createFinalMock(DoctrineRefreshTokenRepository::class);
+        $repository->expects($this->once())->method('deleteByUserId')->with('user-id');
+
+        (new RefreshTokenRepositoryAdapter($repository))->deleteByUserId('user-id');
+    }
+
     /**
      * @template T of object
      * @param class-string<T> $class

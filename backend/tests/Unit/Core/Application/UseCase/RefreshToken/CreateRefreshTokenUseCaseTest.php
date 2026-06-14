@@ -12,9 +12,10 @@ use PHPUnit\Framework\TestCase;
 
 final class CreateRefreshTokenUseCaseTest extends TestCase
 {
-    public function testExecuteCreatesAndSavesRefreshToken(): void
+    public function testExecuteDeletesExistingTokensThenSavesNew(): void
     {
         $repository = $this->createMock(RefreshTokenRepositoryInterface::class);
+        $repository->expects($this->once())->method('deleteByUserId')->with('user-id');
         $repository->expects($this->once())->method('save')->with($this->isInstanceOf(RefreshToken::class));
 
         $uuidGenerator = $this->createStub(UuidGeneratorInterface::class);

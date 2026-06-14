@@ -34,4 +34,14 @@ final class DoctrineRefreshTokenRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function deleteByUserId(string $userId): void
+    {
+        $this->createQueryBuilder('rt')
+            ->delete()
+            ->where('rt.userId = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->execute();
+    }
 }

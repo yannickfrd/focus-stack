@@ -109,13 +109,14 @@ Réponse `200 OK` :
 ```json
 {
   "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
-  "refresh_token": "550e8400-e29b-41d4-a716-446655440000",
   "user": {
     "id": "uuid",
     "email": "utilisateur@exemple.com"
   }
 }
 ```
+
+Un cookie HttpOnly `refresh_token` (`SameSite=Strict`) est également posé dans la réponse — valide **30 jours**.
 
 Le JWT est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
 
@@ -143,29 +144,22 @@ Réponses d'erreur :
 
 ### POST /token/refresh
 
-Corps de la requête :
-```json
-{
-  "refresh_token": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
+Pas de corps de requête — le refresh token est lu depuis le cookie HttpOnly `refresh_token` posé au login.
 
 Réponse `200 OK` :
 ```json
 {
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
-  "refresh_token": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
 }
 ```
 
-L'ancien refresh token est **invalidé** et un nouveau est émis (rotation). Les refresh tokens sont valides **30 jours**.
+Un nouveau cookie HttpOnly `refresh_token` est posé dans la réponse (rotation). Les refresh tokens sont valides **30 jours**.
 
 Réponses d'erreur :
 
 | Code | Condition |
 |------|-----------|
-| `400` | Champ `refresh_token` absent ou vide |
-| `401` | Refresh token introuvable, expiré, ou utilisateur associé supprimé |
+| `401` | Cookie absent, refresh token introuvable, expiré, ou utilisateur associé supprimé |
 
 ## Environnement
 

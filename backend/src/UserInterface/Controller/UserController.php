@@ -27,7 +27,10 @@ final class UserController extends AbstractController
     #[Route('/logout', name: 'user_logout', methods: ['POST'])]
     public function logout(): JsonResponse
     {
-        return $this->json(null, Response::HTTP_NO_CONTENT);
+        $response = $this->json(null, Response::HTTP_NO_CONTENT);
+        $response->headers->clearCookie('refresh_token', '/', null, false, true, 'strict');
+
+        return $response;
     }
 
     #[Route('/register', name: 'user_register', methods: ['POST'])]

@@ -22,6 +22,8 @@ final readonly class CreateRefreshTokenUseCase
      */
     public function execute(string $userId): RefreshToken
     {
+        $this->refreshTokenRepository->deleteByUserId($userId);
+
         $refreshToken = RefreshToken::create(
             id: $this->uuidGenerator->generate(),
             userId: $userId,
