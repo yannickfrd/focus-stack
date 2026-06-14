@@ -19,5 +19,3 @@ services:
     App\:
         resource: '../src/'
 
-    App\Core\Domain\Repository\User\UserRepositoryInterface:
-        class: App\Infrastructure\Persistence\Doctrine\Adapter\User\UserRepositoryAdapter

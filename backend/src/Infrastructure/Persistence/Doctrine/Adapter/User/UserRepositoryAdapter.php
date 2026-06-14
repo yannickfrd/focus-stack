@@ -10,9 +10,11 @@ use App\Infrastructure\Persistence\Doctrine\Entity\UserEntity;
 use App\Infrastructure\Persistence\Doctrine\Mapper\User\UserMapper;
 use App\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserRepository;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
+#[AsAlias(UserRepositoryInterface::class)]
 final readonly class UserRepositoryAdapter implements UserRepositoryInterface
 {
     private const int TTL = 3600;

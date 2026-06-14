@@ -29,6 +29,7 @@ describe('UserRegisterHttpGateway', () => {
       expect(fetch).toHaveBeenCalledWith(`${BASE_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email: 'new@example.com', password: 'password123' }),
       });
     });

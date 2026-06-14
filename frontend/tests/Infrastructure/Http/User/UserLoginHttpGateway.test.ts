@@ -12,7 +12,7 @@ const mockFetch = (status: number, body: string | null = null, rejectText = fals
 };
 
 const loginResponse = JSON.stringify({
-  token: 'jwt.token.here',
+  token: 'jwt.access.token',
   user: { id: 'uuid-1', email: 'user@example.com' },
 });
 
@@ -26,7 +26,7 @@ describe('UserLoginHttpGateway', () => {
   });
 
   describe('login — succès', () => {
-    it('envoie un POST à /login avec le corps JSON et les bons headers', async () => {
+    it('envoie un POST à /login avec credentials: include et les bons headers', async () => {
       vi.stubGlobal('fetch', mockFetch(200, loginResponse));
 
       await new UserLoginHttpGateway().login({ email: 'user@example.com', password: 'password123' });
@@ -34,11 +34,12 @@ describe('UserLoginHttpGateway', () => {
       expect(fetch).toHaveBeenCalledWith(`${BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email: 'user@example.com', password: 'password123' }),
       });
     });
 
-    it("résout avec le token et l'utilisateur retournés par l'API", async () => {
+    it("résout avec l'utilisateur retourné par l'API", async () => {
       vi.stubGlobal('fetch', mockFetch(200, loginResponse));
 
       const result = await new UserLoginHttpGateway().login({
@@ -46,7 +47,7 @@ describe('UserLoginHttpGateway', () => {
         password: 'password123',
       });
 
-      expect(result).toEqual({ token: 'jwt.token.here', user: { id: 'uuid-1', email: 'user@example.com' } });
+      expect(result).toEqual({ token: 'jwt.access.token', user: { id: 'uuid-1', email: 'user@example.com' } });
     });
   });
 

@@ -74,6 +74,7 @@ Depuis `focus-stack/backend/` :
 | `POST` | `/register` | Créer un compte utilisateur |
 | `POST` | `/login` | S'authentifier et recevoir un token JWT |
 | `POST` | `/logout` | Invalider la session (le client supprime le token) |
+| `POST` | `/token/refresh` | Échanger un refresh token contre un nouveau JWT + nouveau refresh token |
 
 ### POST /register
 
@@ -115,7 +116,9 @@ Réponse `200 OK` :
 }
 ```
 
-Le token est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
+Un cookie HttpOnly `refresh_token` (`SameSite=Strict`) est également posé dans la réponse — valide **30 jours**.
+
+Le JWT est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
 
 Réponses d'erreur :
 
@@ -138,6 +141,25 @@ Réponses d'erreur :
 | `401` | Token JWT absent ou invalide |
 
 > Le token n'est pas invalidé côté serveur (JWT stateless). Le client est responsable de le supprimer.
+
+### POST /token/refresh
+
+Pas de corps de requête — le refresh token est lu depuis le cookie HttpOnly `refresh_token` posé au login.
+
+Réponse `200 OK` :
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+}
+```
+
+Un nouveau cookie HttpOnly `refresh_token` est posé dans la réponse (rotation). Les refresh tokens sont valides **30 jours**.
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Cookie absent, refresh token introuvable, expiré, ou utilisateur associé supprimé |
 
 ## Environnement
 

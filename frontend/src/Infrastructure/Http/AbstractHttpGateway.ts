@@ -1,4 +1,5 @@
 import { PUBLIC_PATHS } from '@/config/publicPaths';
+import { tokenStore } from '@infrastructure/Storage/InMemoryTokenStore';
 
 export abstract class AbstractHttpGateway {
   protected readonly baseUrl: string;
@@ -7,20 +8,23 @@ export abstract class AbstractHttpGateway {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
   }
 
-  private get defaultHeaders(): Record<string, string> {
+  private buildHeaders(path: string): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
-    const token = document.cookie.match(/(?:^|;\s*)session=([^;]+)/)?.[1];
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const token = tokenStore.get();
+    if (token && !PUBLIC_PATHS.includes(path)) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     return headers;
   }
 
   private async request<T>(path: string, options: RequestInit): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       ...options,
-      headers: this.defaultHeaders,
+      headers: this.buildHeaders(path),
+      credentials: 'include',
     });
 
     const text = await res.text().catch(() => '');
@@ -30,7 +34,8 @@ export abstract class AbstractHttpGateway {
 
     if (!res.ok) {
       if (res.status === 401 && !PUBLIC_PATHS.includes(path)) {
-        document.cookie = 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        const refreshed = await this.tryRefreshToken();
+        if (refreshed) return this.request<T>(path, options);
         window.location.href = '/login';
       }
       const body = parsed<{ error?: string; message?: string }>();
@@ -38,6 +43,26 @@ export abstract class AbstractHttpGateway {
     }
 
     return (text ? JSON.parse(text) : undefined) as T;
+  }
+
+  private async tryRefreshToken(): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/token/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) return false;
+      const text = await res.text().catch(() => '');
+      if (text) {
+        const data = JSON.parse(text) as { token?: string };
+        if (data.token) tokenStore.set(data.token);
+      }
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   protected get<T>(path: string): Promise<T> {

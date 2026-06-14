@@ -1,1 +1,1 @@
-export const PUBLIC_PATHS = ['/login', '/register'];
+export const PUBLIC_PATHS = ['/login', '/register', '/token/refresh'];

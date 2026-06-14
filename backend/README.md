@@ -74,6 +74,7 @@ From `focus-stack/backend/`:
 | `POST` | `/register` | Register a new user |
 | `POST` | `/login` | Authenticate and receive a JWT token |
 | `POST` | `/logout` | Invalidate session (client discards token) |
+| `POST` | `/token/refresh` | Exchange a refresh token for a new JWT + new refresh token |
 
 ### POST /register
 
@@ -115,7 +116,9 @@ Response `200 OK`:
 }
 ```
 
-Token is valid for **3600 seconds (1 hour)** — configurable via `token_ttl` in `config/packages/lexik_jwt_authentication.yaml`.
+A `refresh_token` HttpOnly cookie (`SameSite=Strict`) is also set in the response — valid for **30 days**.
+
+JWT is valid for **3600 seconds (1 hour)** — configurable via `token_ttl` in `config/packages/lexik_jwt_authentication.yaml`.
 
 Error responses:
 
@@ -138,6 +141,25 @@ Error responses:
 | `401` | Missing or invalid JWT token |
 
 > The token is not server-side invalidated (stateless JWT). The client is responsible for discarding it.
+
+### POST /token/refresh
+
+No request body — the refresh token is read from the `refresh_token` HttpOnly cookie set at login.
+
+Response `200 OK`:
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+}
+```
+
+A new `refresh_token` HttpOnly cookie is set in the response (rotation). Refresh tokens are valid for **30 days**.
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Refresh token cookie absent, not found, expired, or associated user deleted |
 
 ## Environment
 
