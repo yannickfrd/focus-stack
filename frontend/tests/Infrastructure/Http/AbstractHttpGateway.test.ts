@@ -123,16 +123,36 @@ describe('AbstractHttpGateway — gestion des 401', () => {
   });
 
   it('propage toujours l\'erreur après la redirection', async () => {
-    let callCount = 0;
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => {
-      callCount++;
-      return Promise.resolve({
-        ok: false, status: 401,
-        text: vi.fn().mockResolvedValue(JSON.stringify({ message: 'Token expiré.' })),
-      });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false, status: 401,
+      text: vi.fn().mockResolvedValue(JSON.stringify({ message: 'Token expiré.' })),
     }));
 
     await expect(new TestGateway().fetchProtected()).rejects.toThrow('Token expiré.');
+  });
+
+  it("appelle /logout avant de rediriger quand le refresh échoue", async () => {
+    const urls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+      urls.push(url);
+      return Promise.resolve({ ok: false, status: 401, text: vi.fn().mockResolvedValue('{}') });
+    }));
+
+    await new TestGateway().fetchProtected().catch(() => {});
+
+    expect(urls).toContain('http://127.0.0.1:8000/logout');
+    expect(window.location.href).toBe('/login');
+  });
+
+  it("efface le token en mémoire quand la session expire", async () => {
+    tokenStore.set('old.jwt.token');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false, status: 401, text: vi.fn().mockResolvedValue('{}'),
+    }));
+
+    await new TestGateway().fetchProtected().catch(() => {});
+
+    expect(tokenStore.get()).toBeNull();
   });
 });
 

@@ -36,6 +36,7 @@ export abstract class AbstractHttpGateway {
       if (res.status === 401 && !PUBLIC_PATHS.includes(path)) {
         const refreshed = await this.tryRefreshToken();
         if (refreshed) return this.request<T>(path, options);
+        await this.clearExpiredSession();
         window.location.href = '/login';
       }
       const body = parsed<{ error?: string; message?: string }>();
@@ -43,6 +44,19 @@ export abstract class AbstractHttpGateway {
     }
 
     return (text ? JSON.parse(text) : undefined) as T;
+  }
+
+  private async clearExpiredSession(): Promise<void> {
+    tokenStore.clear();
+    try {
+      await fetch(`${this.baseUrl}/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+    } catch {
+      // ignore: redirect happens regardless
+    }
   }
 
   private async tryRefreshToken(): Promise<boolean> {

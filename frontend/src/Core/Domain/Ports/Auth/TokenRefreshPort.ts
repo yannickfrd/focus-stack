@@ -1,3 +1,7 @@
+export interface RefreshTokenResult {
+  token: string;
+}
+
 export interface TokenRefreshPort {
-  refresh(): Promise<void>;
+  refresh(): Promise<RefreshTokenResult>;
 }
