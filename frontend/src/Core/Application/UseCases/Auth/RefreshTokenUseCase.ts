@@ -1,10 +1,9 @@
-import type { TokenRefreshPort, TokenRefreshResult } from '@domain/Ports/Auth/TokenRefreshPort';
-import type { RefreshTokenRequest } from '@application/Requests/Auth/RefreshTokenRequest';
+import type { TokenRefreshPort } from '@domain/Ports/Auth/TokenRefreshPort';
 
 export class RefreshTokenUseCase {
   constructor(private readonly tokenRefreshPort: TokenRefreshPort) {}
 
-  execute(command: RefreshTokenRequest): Promise<TokenRefreshResult> {
-    return this.tokenRefreshPort.refresh(command.refreshToken);
+  execute(): Promise<void> {
+    return this.tokenRefreshPort.refresh();
   }
 }

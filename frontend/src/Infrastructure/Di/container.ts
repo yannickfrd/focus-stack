@@ -7,20 +7,18 @@ import { RegisterUserUseCase } from '@application/UseCases/User/RegisterUserUseC
 import { LoginUserUseCase } from '@application/UseCases/User/LoginUserUseCase';
 import { LogoutUserUseCase } from '@application/UseCases/User/LogoutUserUseCase';
 import { RefreshTokenUseCase } from '@application/UseCases/Auth/RefreshTokenUseCase';
-import { CookieAuthTokenAdapter } from '@infrastructure/Storage/CookieAuthTokenAdapter';
 
 const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
 container.register({
-  userRegisterPort: asClass(UserRegisterHttpGateway).singleton(),
-  userLoginPort:    asClass(UserLoginHttpGateway).singleton(),
+  userRegisterPort:    asClass(UserRegisterHttpGateway).singleton(),
+  userLoginPort:       asClass(UserLoginHttpGateway).singleton(),
   userLogoutPort:      asClass(UserLogoutHttpGateway).singleton(),
   tokenRefreshPort:    asClass(TokenRefreshHttpGateway).singleton(),
   registerUserUseCase: asClass(RegisterUserUseCase).singleton(),
   loginUserUseCase:    asClass(LoginUserUseCase).singleton(),
   logoutUserUseCase:   asClass(LogoutUserUseCase).singleton(),
   refreshTokenUseCase: asClass(RefreshTokenUseCase).singleton(),
-  authToken:           asClass(CookieAuthTokenAdapter).singleton(),
 });
 
 export { container };

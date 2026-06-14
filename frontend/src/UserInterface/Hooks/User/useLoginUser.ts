@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation';
 import { LoginUserRequest } from '@application/Requests/User/LoginUserRequest';
 import { LoginUserUseCase } from '@application/UseCases/User/LoginUserUseCase';
 import { container } from '@infrastructure/Di/container';
-import type { AuthTokenPort } from '@domain/Ports/Auth/AuthTokenPort';
+import { tokenStore } from '@infrastructure/Storage/InMemoryTokenStore';
 
 const useCase = container.resolve<LoginUserUseCase>('loginUserUseCase');
-const authToken = container.resolve<AuthTokenPort>('authToken');
 
 export function useLoginUser() {
   const router = useRouter();
@@ -17,8 +16,7 @@ export function useLoginUser() {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       useCase.execute(new LoginUserRequest(email, password)),
     onSuccess: (result) => {
-      authToken.store(result.token);
-      authToken.storeRefreshToken(result.refresh_token);
+      tokenStore.set(result.token);
       router.push('/');
     },
   });

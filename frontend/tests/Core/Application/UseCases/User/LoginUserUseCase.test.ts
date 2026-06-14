@@ -4,8 +4,7 @@ import { LoginUserRequest } from '@application/Requests/User/LoginUserRequest';
 import type { UserLoginPort, LoginResult } from '@domain/Ports/User/UserLoginPort';
 
 const makeResult = (overrides: Partial<LoginResult> = {}): LoginResult => ({
-  token: 'jwt.token.here',
-  refresh_token: 'refresh.token.here',
+  token: 'jwt.token.value',
   user: { id: 'uuid-1', email: 'test@example.com' },
   ...overrides,
 });
@@ -26,7 +25,7 @@ describe('LoginUserUseCase', () => {
   });
 
   it('retourne le résultat renvoyé par le port', async () => {
-    const result = makeResult({ token: 'abc.def.ghi', user: { id: 'uuid-2', email: 'jane@example.com' } });
+    const result = makeResult({ user: { id: 'uuid-2', email: 'jane@example.com' } });
     const port: UserLoginPort = { login: vi.fn().mockResolvedValue(result) };
     const useCase = new LoginUserUseCase(port);
 

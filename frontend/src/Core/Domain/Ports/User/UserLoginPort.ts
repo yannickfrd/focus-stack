@@ -7,7 +7,6 @@ export interface LoginInput {
 
 export interface LoginResult {
   token: string;
-  refresh_token: string;
   user: User;
 }
 
