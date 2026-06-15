@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\UserInterface\EventSubscriber;
 
+use App\Core\Domain\Exception\NotFoundException;
 use App\Core\Domain\Exception\UnauthorizedException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,7 @@ final class ExceptionSubscriber implements EventSubscriberInterface
         [$status, $message] = match (true) {
             $exception instanceof HttpExceptionInterface => [$exception->getStatusCode(), $exception->getMessage()],
             $exception instanceof UnauthorizedException => [JsonResponse::HTTP_UNAUTHORIZED, $exception->getMessage()],
+            $exception instanceof NotFoundException => [JsonResponse::HTTP_NOT_FOUND, $exception->getMessage()],
             $exception instanceof \DomainException => [JsonResponse::HTTP_CONFLICT, $exception->getMessage()],
             default => [JsonResponse::HTTP_INTERNAL_SERVER_ERROR, 'An unexpected error occurred.'],
         };

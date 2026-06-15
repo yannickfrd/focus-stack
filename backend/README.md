@@ -75,6 +75,13 @@ From `focus-stack/backend/`:
 | `POST` | `/login` | Authenticate and receive a JWT token |
 | `POST` | `/logout` | Invalidate session (client discards token) |
 | `POST` | `/token/refresh` | Exchange a refresh token for a new JWT + new refresh token |
+| `GET` | `/tasks` | List authenticated user's tasks (ordered by position) |
+| `POST` | `/tasks` | Create a task |
+| `PATCH` | `/tasks/{id}` | Update title / description / priority / estimated time |
+| `PATCH` | `/tasks/{id}/toggle` | Toggle done state |
+| `PATCH` | `/tasks/{id}/postpone` | Set scheduledFor to tomorrow |
+| `PUT` | `/tasks/reorder` | Persist task order (ordered id list) |
+| `DELETE` | `/tasks/{id}` | Delete a task |
 
 ### POST /register
 
@@ -160,6 +167,152 @@ Error responses:
 | Code | Condition |
 |------|-----------|
 | `401` | Refresh token cookie absent, not found, expired, or associated user deleted |
+
+### GET /tasks
+
+Requires a valid JWT in the `Authorization: Bearer <token>` header.
+
+Response `200 OK`:
+```json
+[
+  {
+    "id": 1,
+    "title": "Finish API docs",
+    "description": "...",
+    "priority": "high",
+    "done": false,
+    "scheduledFor": "today",
+    "estimatedTime": "2h",
+    "createdAt": "2026-06-15T09:00:00+00:00"
+  }
+]
+```
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Missing or invalid JWT token |
+
+### POST /tasks
+
+Requires a valid JWT in the `Authorization: Bearer <token>` header.
+
+Request body:
+```json
+{
+  "title": "string",
+  "description": "string|null",
+  "priority": "high|middle|low",
+  "scheduledFor": "today|tomorrow",
+  "estimatedTime": "string|null"
+}
+```
+
+Response `201 Created`:
+```json
+{
+  "id": 1,
+  "title": "New Task",
+  "description": null,
+  "priority": "middle",
+  "done": false,
+  "scheduledFor": "today",
+  "estimatedTime": null,
+  "createdAt": "2026-06-15T09:00:00+00:00"
+}
+```
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation failed (blank title, invalid priority or scheduledFor) |
+| `401` | Missing or invalid JWT token |
+
+### PATCH /tasks/{id}
+
+Requires a valid JWT. All fields are optional — only provided (non-null) fields are updated.
+
+Request body:
+```json
+{
+  "title": "string",
+  "description": "string|null",
+  "priority": "high|middle|low",
+  "estimatedTime": "string|null"
+}
+```
+
+Response `200 OK` — standard task object (see GET /tasks).
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation failed |
+| `401` | Missing or invalid JWT token |
+| `404` | Task not found or does not belong to the authenticated user |
+
+### PATCH /tasks/{id}/toggle
+
+Requires a valid JWT. No request body.
+
+Response `200 OK` — standard task object with `done` flipped.
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Missing or invalid JWT token |
+| `404` | Task not found or does not belong to the authenticated user |
+
+### PATCH /tasks/{id}/postpone
+
+Requires a valid JWT. No request body. Sets `scheduledFor` to `tomorrow`.
+
+Response `200 OK` — standard task object.
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Missing or invalid JWT token |
+| `404` | Task not found or does not belong to the authenticated user |
+
+### PUT /tasks/reorder
+
+Requires a valid JWT.
+
+Request body:
+```json
+{
+  "ids": [3, 1, 5, 2, 4]
+}
+```
+
+Response `204 No Content`
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation failed (empty ids, non-integer values) |
+| `401` | Missing or invalid JWT token |
+| `404` | One of the ids does not belong to the authenticated user |
+
+### DELETE /tasks/{id}
+
+Requires a valid JWT. No request body.
+
+Response `204 No Content`
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Missing or invalid JWT token |
+| `404` | Task not found or does not belong to the authenticated user |
 
 ## Environment
 

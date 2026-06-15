@@ -75,6 +75,13 @@ Depuis `focus-stack/backend/` :
 | `POST` | `/login` | S'authentifier et recevoir un token JWT |
 | `POST` | `/logout` | Invalider la session (le client supprime le token) |
 | `POST` | `/token/refresh` | Échanger un refresh token contre un nouveau JWT + nouveau refresh token |
+| `GET` | `/tasks` | Lister les tâches de l'utilisateur connecté (triées par position) |
+| `POST` | `/tasks` | Créer une tâche |
+| `PATCH` | `/tasks/{id}` | Modifier titre / description / priorité / estimation |
+| `PATCH` | `/tasks/{id}/toggle` | Inverser l'état done |
+| `PATCH` | `/tasks/{id}/postpone` | Passer scheduledFor à tomorrow |
+| `PUT` | `/tasks/reorder` | Enregistrer l'ordre (liste d'ids ordonnés) |
+| `DELETE` | `/tasks/{id}` | Supprimer une tâche |
 
 ### POST /register
 
@@ -160,6 +167,140 @@ Réponses d'erreur :
 | Code | Condition |
 |------|-----------|
 | `401` | Cookie absent, refresh token introuvable, expiré, ou utilisateur associé supprimé |
+
+### GET /tasks
+
+Nécessite un JWT valide dans le header `Authorization: Bearer <token>`.
+
+Réponse `200 OK` :
+```json
+[
+  {
+    "id": 1,
+    "title": "Terminer la doc API",
+    "description": "...",
+    "priority": "high",
+    "done": false,
+    "scheduledFor": "today",
+    "estimatedTime": "2h",
+    "createdAt": "2026-06-15T09:00:00+00:00"
+  }
+]
+```
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Token JWT absent ou invalide |
+
+### POST /tasks
+
+Nécessite un JWT valide.
+
+Corps de la requête :
+```json
+{
+  "title": "string",
+  "description": "string|null",
+  "priority": "high|middle|low",
+  "scheduledFor": "today|tomorrow",
+  "estimatedTime": "string|null"
+}
+```
+
+Réponse `201 Created` — objet tâche standard (voir GET /tasks).
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation échouée (titre vide, priorité ou scheduledFor invalide) |
+| `401` | Token JWT absent ou invalide |
+
+### PATCH /tasks/{id}
+
+Nécessite un JWT valide. Tous les champs sont optionnels — seuls les champs fournis (non-null) sont mis à jour.
+
+Corps de la requête :
+```json
+{
+  "title": "string",
+  "description": "string|null",
+  "priority": "high|middle|low",
+  "estimatedTime": "string|null"
+}
+```
+
+Réponse `200 OK` — objet tâche standard.
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation échouée |
+| `401` | Token JWT absent ou invalide |
+| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
+
+### PATCH /tasks/{id}/toggle
+
+Nécessite un JWT valide. Pas de corps de requête.
+
+Réponse `200 OK` — objet tâche avec `done` inversé.
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Token JWT absent ou invalide |
+| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
+
+### PATCH /tasks/{id}/postpone
+
+Nécessite un JWT valide. Pas de corps de requête. Passe `scheduledFor` à `tomorrow`.
+
+Réponse `200 OK` — objet tâche standard.
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Token JWT absent ou invalide |
+| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
+
+### PUT /tasks/reorder
+
+Nécessite un JWT valide.
+
+Corps de la requête :
+```json
+{
+  "ids": [3, 1, 5, 2, 4]
+}
+```
+
+Réponse `204 No Content`
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation échouée (ids vide, valeurs non entières) |
+| `401` | Token JWT absent ou invalide |
+| `404` | Un des ids n'appartient pas à l'utilisateur connecté |
+
+### DELETE /tasks/{id}
+
+Nécessite un JWT valide. Pas de corps de requête.
+
+Réponse `204 No Content`
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Token JWT absent ou invalide |
+| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
 
 ## Environnement
 
