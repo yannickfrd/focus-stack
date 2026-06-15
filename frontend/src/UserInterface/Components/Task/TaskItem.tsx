@@ -3,19 +3,9 @@
 import { useState, useRef } from 'react';
 import { Trash2, CalendarClock, Clock } from 'lucide-react';
 import { CheckIcon } from '@ui/Components/Icons/CheckIcon';
+import type { Task, Priority } from '@domain/Entities/Task/Task';
 
-export type Priority = 'haute' | 'moyenne' | 'basse';
-
-export interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  priority: Priority;
-  done: boolean;
-  scheduledFor?: 'today' | 'tomorrow';
-  createdAt: Date;
-  estimatedTime?: string;
-}
+export type { Task, Priority };
 
 const PRIORITY_STYLES: Record<Priority, string> = {
   haute: 'bg-red-500/10 text-red-400',

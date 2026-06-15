@@ -5,7 +5,7 @@ import { CheckSquare, Search } from 'lucide-react';
 import { Sidebar } from '@ui/Components/Layout/Sidebar';
 import { TaskSidebar } from '@ui/Components/Task/TaskSidebar';
 import { TaskTable } from '@ui/Components/Task/TaskTable';
-import type { Task, Priority } from '@ui/Components/Task/TaskItem';
+import { useTasks } from '@ui/Hooks/Task/useTasks';
 
 const stats = [
   {
@@ -20,12 +20,6 @@ const stats = [
     delta: 'Record personnel : 14 jours',
     accent: 'border-blue-500/20 bg-blue-500/10 text-blue-400',
   },
-  {
-    label: 'Tâches accomplies',
-    value: '12 / 15',
-    delta: "3 restantes aujourd'hui",
-    accent: 'border-green-500/20 bg-green-500/10 text-green-400',
-  },
 ];
 
 const dailyItems = [
@@ -36,59 +30,24 @@ const dailyItems = [
   { id: 5, title: 'Lecture', dot: 'bg-orange-500' },
 ];
 
-
 const weekBars = [3, 5, 4, 7, 6, 8, 5];
 const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-
-const d = (daysAgo: number) => { const d = new Date(); d.setDate(d.getDate() - daysAgo); return d; };
-
-const INITIAL_TASKS: Task[] = [
-  { id: 1, title: 'Terminer la documentation API', description: 'Relire les endpoints swagger et mettre à jour le typage TypeScript.', priority: 'haute', done: true, scheduledFor: 'today', createdAt: d(3), estimatedTime: '2h' },
-  { id: 2, title: "Concevoir la page d'accueil", description: "Maquette Figma validée — passer à l'intégration.", priority: 'moyenne', done: true, scheduledFor: 'today', createdAt: d(1), estimatedTime: '3h' },
-  { id: 3, title: 'Revoir les pull requests', description: 'Backend + frontend à merger avant lundi.', priority: 'haute', done: false, scheduledFor: 'today', createdAt: d(0), estimatedTime: '1h' },
-  { id: 4, title: 'Notes de standup équipe', priority: 'basse', done: false, scheduledFor: 'today', createdAt: d(0) },
-  { id: 5, title: 'Déployer en staging', description: "Vérifier les variables d'env avant le push.", priority: 'moyenne', done: false, scheduledFor: 'today', createdAt: d(2), estimatedTime: '30min' },
-];
 
 type StatusFilter = 'all' | 'pending' | 'done';
 
 export function DashboardClient() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  const toggleTask = (id: number) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  const { tasks, isLoading, createTask, updateTask, toggleTask, postponeTask, reorderTask, deleteTask } = useTasks();
 
-  const addTask = (title: string, description: string, priority: Priority, estimatedTime: string) =>
-    setTasks((prev) => [
-      ...prev,
-      { id: Date.now(), title, description: description || undefined, priority, done: false, scheduledFor: 'today' as const, createdAt: new Date(), estimatedTime: estimatedTime || undefined },
-    ]);
+  const todayTasks = tasks.filter((t) => !t.scheduledFor || t.scheduledFor === 'today');
+  const todayDone = todayTasks.filter((t) => t.done).length;
+  const todayTotal = todayTasks.length;
+  const pending = todayTasks.filter((t) => !t.done).length;
 
-  const deleteTask = (id: number) =>
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-
-  const updateTask = (id: number, changes: Partial<Pick<Task, 'title' | 'description' | 'priority'>>) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...changes } : t)));
-
-  const postponeTask = (id: number) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, scheduledFor: 'tomorrow' as const } : t)));
-
-  const reorderTask = (draggedId: number, targetId: number, position: 'before' | 'after') =>
-    setTasks((prev) => {
-      const items = [...prev];
-      const from = items.findIndex((t) => t.id === draggedId);
-      const [moved] = items.splice(from, 1);
-      const to = items.findIndex((t) => t.id === targetId);
-      items.splice(position === 'before' ? to : to + 1, 0, moved);
-      return items;
-    });
-
-  const pending = tasks.filter((t) => !t.done).length;
-
-  const applyFilters = (list: Task[]) =>
+  const applyFilters = (list: typeof tasks) =>
     list
       .filter((t) => !search || t.title.toLowerCase().includes(search.toLowerCase()))
       .filter((t) => statusFilter === 'all' || (statusFilter === 'done' ? t.done : !t.done));
@@ -135,6 +94,13 @@ export function DashboardClient() {
                 <p className="mt-1 text-xs text-subtle-foreground">{s.delta}</p>
               </div>
             ))}
+            <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-5">
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Tâches accomplies</p>
+              <p className="mt-1 text-2xl font-bold text-green-400">{todayDone} / {todayTotal}</p>
+              <p className="mt-1 text-xs text-subtle-foreground">
+                {pending > 0 ? `${pending} restante${pending > 1 ? 's' : ''} aujourd'hui` : "Toutes les tâches sont faites !"}
+              </p>
+            </div>
           </div>
 
           {/* Barre recherche + filtre */}
@@ -167,12 +133,16 @@ export function DashboardClient() {
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-xl border border-border bg-card p-5">
               <h2 className="mb-3 text-sm font-semibold text-foreground">Tâches du jour en cours</h2>
-              <TaskTable
-                tasks={tasks.filter((t) => (!t.scheduledFor || t.scheduledFor === 'today') && !t.done)}
-                onToggle={toggleTask}
-                emptyLabel="Aucune tâche en cours aujourd'hui"
-                compact
-              />
+              {isLoading ? (
+                <p className="py-6 text-center text-sm text-subtle-foreground">Chargement…</p>
+              ) : (
+                <TaskTable
+                  tasks={todayTasks.filter((t) => !t.done)}
+                  onToggle={toggleTask}
+                  emptyLabel="Aucune tâche en cours aujourd'hui"
+                  compact
+                />
+              )}
             </div>
 
             <div className="rounded-xl border border-border bg-card p-5">
@@ -202,7 +172,11 @@ export function DashboardClient() {
                   + Ajouter
                 </button>
               </div>
-              <TaskTable tasks={applyFilters(tasks)} onToggle={toggleTask} />
+              {isLoading ? (
+                <p className="py-6 text-center text-sm text-subtle-foreground">Chargement…</p>
+              ) : (
+                <TaskTable tasks={applyFilters(tasks)} onToggle={toggleTask} />
+              )}
             </div>
 
             <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
@@ -233,9 +207,9 @@ export function DashboardClient() {
       <TaskSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        tasks={tasks}
+        tasks={todayTasks}
         onToggle={toggleTask}
-        onAdd={(title, description, priority, estimatedTime) => addTask(title, description, priority, estimatedTime)}
+        onAdd={(title, description, priority, estimatedTime) => createTask(title, description, priority, estimatedTime, 'today')}
         onUpdate={updateTask}
         onReorder={reorderTask}
         onPostpone={postponeTask}

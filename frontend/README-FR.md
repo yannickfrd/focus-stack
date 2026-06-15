@@ -14,7 +14,7 @@ Application Next.js 16 (React 19, TypeScript, Tailwind CSS v4) suivant l'archite
 | UI | React 19 |
 | Langage | TypeScript (strict) |
 | Styles | Tailwind CSS v4 |
-| Conteneur DI | Awilix |
+| Conteneur DI | Awilix (mode PROXY) |
 | État serveur | TanStack React Query v4 |
 | Formulaires | React Hook Form |
 | Icônes | Lucide React |
@@ -24,27 +24,43 @@ Application Next.js 16 (React 19, TypeScript, Tailwind CSS v4) suivant l'archite
 
 ```
 src/
-├── app/                     # Next.js App Router (pages, layouts, providers)
+├── app/                        # Next.js App Router (pages, layouts, providers)
 ├── Core/
 │   ├── Domain/
-│   │   ├── Entities/        # Entités métier (classes TypeScript pures)
-│   │   └── Ports/           # Interfaces repository, port token auth
+│   │   ├── Entities/           # Entités métier (TypeScript pur)
+│   │   │   ├── Task/           # Task, Priority
+│   │   │   └── User/           # User
+│   │   └── Ports/              # Interfaces de port
+│   │       ├── Task/           # TaskPort (getAll, create, update, toggle, postpone, reorder, remove)
+│   │       └── User/           # UserLoginPort, UserLogoutPort, UserRegisterPort
 │   └── Application/
-│       ├── UseCases/        # Use cases (orchestrent le domaine via les ports)
-│       └── Requests/        # Objets de requête
+│       ├── UseCases/           # Use cases (orchestrent le domaine via les ports)
+│       │   ├── Auth/           # RefreshTokenUseCase
+│       │   ├── Task/           # GetTasks, CreateTask, UpdateTask, Toggle, Postpone, Reorder, Delete
+│       │   └── User/           # LoginUser, LogoutUser, RegisterUser
+│       └── Requests/           # Objets de requête
 ├── Infrastructure/
-│   ├── Http/                # Adaptateurs API (fetch)
-│   ├── Storage/             # Adaptateur cookie pour le token auth
-│   └── Di/                  # Conteneur Awilix
+│   ├── Http/                   # Adaptateurs API fetch (héritent d'AbstractHttpGateway)
+│   │   ├── Auth/               # TokenRefreshHttpGateway
+│   │   ├── Task/               # TaskHttpGateway (mapping priorité FR ↔ EN)
+│   │   └── User/               # UserLoginHttpGateway, …
+│   ├── Storage/                # InMemoryTokenStore (JWT access token)
+│   └── Di/                     # Conteneur Awilix (mode PROXY)
 └── UserInterface/
-    ├── Components/          # Composants React
-    └── Hooks/               # Hooks personnalisés (React Query)
+    ├── Components/             # Composants React
+    │   ├── Dashboard/          # DashboardClient
+    │   ├── Layout/             # Sidebar
+    │   └── Task/               # TaskItem, TaskSidebar, TaskTable, TasksPageClient
+    └── Hooks/
+        ├── Task/               # useTasks (React Query)
+        └── User/               # useLoginUser, useLogoutUser, useRegisterUser
 ```
 
 **Règles clés :**
 - `Core/Domain/` contient uniquement du TypeScript pur — pas de React, pas de Next.js.
-- Les use cases reçoivent leurs dépendances par constructeur (injectées par Awilix).
-- Les hooks React Query sont dans `UserInterface/Hooks/` et appellent les use cases, pas les endpoints API directement.
+- Les use cases reçoivent leurs dépendances par déstructuration `({ dep })` (requis par le mode PROXY d'Awilix).
+- Les hooks React Query sont dans `UserInterface/Hooks/` et appellent les use cases, pas les endpoints directement.
+- Les valeurs de priorité sont mappées dans `TaskHttpGateway` : `haute ↔ high`, `moyenne ↔ middle`, `basse ↔ low`.
 
 ## Commandes
 
@@ -62,19 +78,27 @@ Depuis `focus-stack/frontend/` :
 
 | Route | Description |
 |-------|-------------|
-| `/` | Tableau de bord (protégé) |
-| `/login` | Connexion — `POST /login` → JWT + refresh token stockés en cookie |
-| `/register` | Inscription — `POST /register` → redirection vers `/login` |
+| `/` | Tableau de bord — tâches du jour + analytique (protégé) |
+| `/tasks` | Liste complète des tâches — aujourd'hui, demain, toutes (protégé) |
+| `/login` | Connexion — `POST /api/login` → JWT stocké en mémoire, refresh token en cookie HttpOnly |
+| `/register` | Inscription — `POST /api/register` → redirection vers `/login` |
 
-Toute route non publique redirige vers `/login` si aucun cookie de session n'est présent.
+## Fonctionnalités
 
-## Comportements transversaux
+### Gestion des tâches
+- **Sidebar** — panneau droit toggleable, réorganisation par drag-and-drop, édition inline (titre, description, priorité, estimation), délai de 5 secondes avant déplacement dans la section "accomplies".
+- **Tableaux** — colonnes triables (titre, priorité, estimation, date de création, statut), recherche globale, filtre par statut (toutes / en cours / terminées).
+- **Actions** — créer, modifier, cocher, reporter à demain, réordonner, supprimer.
 
-**Déconnexion** — un bouton "Se déconnecter" est visible dans la sidebar sur toutes les pages protégées. Il appelle `POST /logout`, efface le cookie `session` et le cookie `refresh_token`, puis redirige vers `/login`.
+### Flux d'authentification
+À chaque chargement de page, `Providers` appelle `POST /api/token/refresh` avant de rendre les enfants. Un écran de chargement est affiché pendant cette phase. En cas de succès, le nouveau JWT est stocké en mémoire et le rendu se poursuit. En cas d'échec (pas de cookie de refresh valide), les enfants sont tout de même rendus — les appels API non authentifiés reçoivent un `401` et redirigent vers `/login`.
 
-**Renouvellement automatique du token** — lorsqu'une requête authentifiée reçoit un `401`, le client tente silencieusement un `POST /token/refresh`. En cas de succès, les deux cookies sont renouvelés et la requête initiale est rejouée. En cas d'échec, les cookies sont effacés et l'utilisateur est redirigé vers `/login`.
+### Proxy API
+Tous les appels API transitent par les rewrites Next.js (`/api/*` → `http://127.0.0.1:8000/*`). Cela garantit que les cookies sont toujours sur le même origin, évitant les problèmes `SameSite=Strict` cross-origin quelle que soit l'URL utilisée (`localhost` ou `127.0.0.1`).
 
-## API Backend
+## Variables d'environnement
 
-Le frontend communique avec l'API Symfony sur `http://127.0.0.1:8000`.  
-Voir [backend/README-FR.md](../backend/README-FR.md) pour tous les endpoints.
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Base URL de l'API côté client (mettre `/api` pour utiliser le proxy intégré) |
+| `BACKEND_URL` | URL du backend utilisée par les rewrites Next.js côté serveur (défaut : `http://127.0.0.1:8000`) |
