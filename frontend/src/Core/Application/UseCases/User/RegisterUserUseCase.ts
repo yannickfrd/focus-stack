@@ -2,7 +2,10 @@ import type { RegisterUserRequest } from '@application/Requests/User/RegisterUse
 import type { UserRegisterPort } from '@domain/Ports/User/UserRegisterPort';
 
 export class RegisterUserUseCase {
-  constructor(private readonly userRegisterPort: UserRegisterPort) {}
+  private readonly userRegisterPort: UserRegisterPort;
+  constructor({ userRegisterPort }: { userRegisterPort: UserRegisterPort }) {
+    this.userRegisterPort = userRegisterPort;
+  }
 
   execute(command: RegisterUserRequest): Promise<void> {
     return this.userRegisterPort.register({

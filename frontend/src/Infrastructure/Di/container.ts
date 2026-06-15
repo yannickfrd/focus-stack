@@ -8,7 +8,7 @@ import { LoginUserUseCase } from '@application/UseCases/User/LoginUserUseCase';
 import { LogoutUserUseCase } from '@application/UseCases/User/LogoutUserUseCase';
 import { RefreshTokenUseCase } from '@application/UseCases/Auth/RefreshTokenUseCase';
 
-const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
+const container = createContainer({ injectionMode: InjectionMode.PROXY });
 
 container.register({
   userRegisterPort:    asClass(UserRegisterHttpGateway).singleton(),
