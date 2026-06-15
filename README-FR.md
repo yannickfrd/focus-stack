@@ -53,12 +53,25 @@ make stop      # arrête tous les serveurs et le conteneur Docker
 | `make backend-<cible>` | Lance n'importe quelle cible backend depuis la racine |
 | `make frontend-<cible>` | Lance n'importe quelle cible frontend depuis la racine |
 
+## Fonctionnalités
+
+| Route | Description |
+|-------|-------------|
+| `/login` | Connexion email + mot de passe, JWT + refresh token |
+| `/register` | Création de compte |
+| `/` | Tableau de bord — tâches du jour, analytique, sidebar de tâches rapide |
+| `/tasks` | Liste complète des tâches — aujourd'hui, demain, toutes |
+
+**Gestion des tâches** — créer, éditer inline, cocher, reporter à demain, réordonner par drag-and-drop, supprimer. Tableaux triables avec recherche et filtre par statut.
+
+**Auth** — JWT access token (1h) stocké en mémoire, refresh token (30 jours) en cookie HttpOnly. Renouvellement transparent à chaque chargement de page via `Providers`.
+
 ## Architecture
 
 L'**architecture hexagonale** est appliquée des deux côtés :
 
-- **Domain** — logique métier pure, sans dépendance framework (POPO côté backend, classes TypeScript simples côté frontend).
-- **Application** — use cases qui orchestrent le domaine via des interfaces repository.
+- **Domain** — logique métier pure, sans dépendance framework (POPO côté backend, TypeScript pur côté frontend).
+- **Application** — use cases qui orchestrent le domaine via des interfaces de port.
 - **Infrastructure** — implémentations concrètes (repositories Doctrine, adaptateurs HTTP) injectées via les interfaces.
 - **UserInterface** — contrôleurs HTTP (backend) et composants React / hooks (frontend).
 

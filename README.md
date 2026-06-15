@@ -53,12 +53,25 @@ make stop      # stops all servers and the database container
 | `make backend-<target>` | Run any backend target from the root |
 | `make frontend-<target>` | Run any frontend target from the root |
 
+## Features
+
+| Route | Description |
+|-------|-------------|
+| `/login` | Email + password login, JWT + refresh token |
+| `/register` | Account creation |
+| `/` | Dashboard — today's tasks, analytics, quick task sidebar |
+| `/tasks` | Full task list — today, tomorrow, all tasks |
+
+**Task management** — create, edit inline, toggle done, postpone to tomorrow, drag-and-drop reorder, delete. Sortable tables with search and status filter.
+
+**Auth** — JWT access token (1h) stored in memory, refresh token (30 days) in an HttpOnly cookie. Transparent renewal on each page load via `Providers`.
+
 ## Architecture
 
 **Hexagonal architecture** is applied on both sides:
 
-- **Domain** — pure business logic, no framework dependency (POPO on the backend, plain TypeScript classes on the frontend).
-- **Application** — use cases that orchestrate the domain through repository interfaces.
+- **Domain** — pure business logic, no framework dependency (POPO on the backend, plain TypeScript on the frontend).
+- **Application** — use cases that orchestrate the domain through port interfaces.
 - **Infrastructure** — concrete implementations (Doctrine repositories, HTTP adapters) injected via interfaces.
 - **UserInterface** — HTTP controllers (backend) and React components / hooks (frontend).
 
