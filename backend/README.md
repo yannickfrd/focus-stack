@@ -58,7 +58,7 @@ From `focus-stack/backend/`:
 | Target | Description |
 |--------|-------------|
 | `make install` | `composer install` |
-| `make start` | Start Symfony dev server (`http://127.0.0.1:8000`) |
+| `make start` | Start Symfony dev server (`http://localhost:8000`) |
 | `make stop` | Stop Symfony dev server |
 | `make db-create` | Create the database (first run only) |
 | `make migrate` | Run pending Doctrine migrations |

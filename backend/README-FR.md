@@ -58,7 +58,7 @@ Depuis `focus-stack/backend/` :
 | Cible | Description |
 |-------|-------------|
 | `make install` | `composer install` |
-| `make start` | Démarre le serveur Symfony (`http://127.0.0.1:8000`) |
+| `make start` | Démarre le serveur Symfony (`http://localhost:8000`) |
 | `make stop` | Arrête le serveur Symfony |
 | `make db-create` | Crée la base de données (première fois uniquement) |
 | `make migrate` | Joue les migrations en attente |
