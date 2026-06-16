@@ -18,7 +18,7 @@ readonly class CreateTaskRequest
         #[Assert\Choice(choices: ['high', 'middle', 'low'])]
         public string $priority = 'middle',
 
-        #[Assert\Choice(choices: ['today', 'tomorrow'], allowNull: true)]
+        #[Assert\Choice(choices: ['today', 'tomorrow'])]
         public ?string $scheduledFor = 'today',
 
         #[Assert\Length(max: 50)]
