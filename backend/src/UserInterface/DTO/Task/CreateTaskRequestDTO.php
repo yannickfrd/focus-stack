@@ -18,10 +18,10 @@ readonly final class CreateTaskRequestDTO
 
         public ?string $description = null,
 
-        #[Assert\Choice(choices: ['high', 'middle', 'low'])]
+        #[Assert\Choice(callback: [Priority::class, 'values'])]
         public string $priority = 'middle',
 
-        #[Assert\Choice(choices: ['today', 'tomorrow'])]
+        #[Assert\Choice(callback: [ScheduledFor::class, 'values'])]
         public ?string $scheduledFor = 'today',
 
         #[Assert\Length(max: 50)]

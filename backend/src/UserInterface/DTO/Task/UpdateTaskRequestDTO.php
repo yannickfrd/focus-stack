@@ -18,7 +18,7 @@ readonly final class UpdateTaskRequestDTO
 
         public ?string $description = null,
 
-        #[Assert\Choice(choices: ['high', 'middle', 'low'])]
+        #[Assert\Choice(callback: [Priority::class, 'values'])]
         public string $priority = 'middle',
 
         #[Assert\Length(max: 50)]
@@ -26,7 +26,7 @@ readonly final class UpdateTaskRequestDTO
 
         public bool $done = false,
 
-        #[Assert\Choice(choices: ['today', 'tomorrow'])]
+        #[Assert\Choice(callback: [ScheduledFor::class, 'values'])]
         public ?string $scheduledFor = null,
     ) {}
 
