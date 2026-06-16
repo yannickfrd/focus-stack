@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Plus, ArrowUpDown } from 'lucide-react';
 import { TaskItem, type Task, type Priority } from './TaskItem';
+import { TimeEstimatePicker } from './TimeEstimatePicker';
 
 interface Props {
   isOpen: boolean;
@@ -25,11 +26,17 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
   const [newEstimate, setNewEstimate] = useState('');
   const [sorted, setSorted] = useState(false);
   const [pendingMove, setPendingMove] = useState<Set<number>>(new Set());
+  const [pendingPostpone, setPendingPostpone] = useState<Set<number>>(new Set());
   const timeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const postponeTimeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
     const timeouts = timeoutsRef.current;
-    return () => { timeouts.forEach(clearTimeout); };
+    const postponeTimeouts = postponeTimeoutsRef.current;
+    return () => {
+      timeouts.forEach(clearTimeout);
+      postponeTimeouts.forEach(clearTimeout);
+    };
   }, []);
 
   const handleToggle = (id: number) => {
@@ -52,6 +59,16 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
     onToggle(id);
   };
 
+  const handlePostpone = (id: number) => {
+    setPendingPostpone((prev) => new Set([...prev, id]));
+    const timeout = setTimeout(() => {
+      setPendingPostpone((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      postponeTimeoutsRef.current.delete(id);
+    }, 3000);
+    postponeTimeoutsRef.current.set(id, timeout);
+    onPostpone(id);
+  };
+
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
@@ -66,7 +83,9 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
     : tasks;
 
   const pendingTasks = allDisplayed.filter((t) => !t.done || pendingMove.has(t.id));
-  const doneTasks = allDisplayed.filter((t) => t.done && !pendingMove.has(t.id));
+  const todayTasks    = pendingTasks.filter((t) => t.scheduledFor !== 'tomorrow' || pendingPostpone.has(t.id));
+  const tomorrowTasks = pendingTasks.filter((t) => t.scheduledFor === 'tomorrow' && !pendingPostpone.has(t.id));
+  const doneTasks     = allDisplayed.filter((t) => t.done && !pendingMove.has(t.id));
   const done = tasks.filter((t) => t.done).length;
 
   const renderTask = (task: Task) => (
@@ -77,7 +96,7 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
       onDelete={onDelete}
       onUpdate={onUpdate}
       onReorder={onReorder}
-      onPostpone={onPostpone}
+      onPostpone={handlePostpone}
     />
   );
 
@@ -130,8 +149,23 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
           ) : (
             <>
               <ul className="space-y-2 px-4">
-                {pendingTasks.map(renderTask)}
+                {todayTasks.map(renderTask)}
               </ul>
+
+              {tomorrowTasks.length > 0 && (
+                <div className="mt-4 px-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-subtle-foreground">
+                      Demain ({tomorrowTasks.length})
+                    </span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                  <ul className="space-y-2">
+                    {tomorrowTasks.map(renderTask)}
+                  </ul>
+                </div>
+              )}
 
               {doneTasks.length > 0 && (
                 <div className="mt-4 px-4">
@@ -167,12 +201,10 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
               rows={2}
               className="w-full resize-none rounded-lg border border-input bg-elevated px-3 py-2 text-sm text-foreground placeholder-subtle-foreground focus:border-accent-hover focus:outline-none focus:ring-1 focus:ring-accent-hover"
             />
-            <input
-              type="text"
-              value={newEstimate}
-              onChange={(e) => setNewEstimate(e.target.value)}
-              placeholder="Estimation (ex: 30min, 2h)…"
-              className="w-full rounded-lg border border-input bg-elevated px-3 py-2 text-sm text-foreground placeholder-subtle-foreground focus:border-accent-hover focus:outline-none focus:ring-1 focus:ring-accent-hover"
+            <TimeEstimatePicker
+              value={newEstimate || undefined}
+              onChange={(val) => setNewEstimate(val ?? '')}
+              size="md"
             />
             <div className="flex gap-2">
               <select

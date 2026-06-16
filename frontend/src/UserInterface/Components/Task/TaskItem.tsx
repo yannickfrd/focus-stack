@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react';
 import { Trash2, CalendarClock, Clock } from 'lucide-react';
 import { CheckIcon } from '@ui/Components/Icons/CheckIcon';
+import { TimeEstimatePicker } from './TimeEstimatePicker';
+import { ConfirmDialog } from '@ui/Components/Common/ConfirmDialog';
 import type { Task, Priority } from '@domain/Entities/Task/Task';
 
 export type { Task, Priority };
@@ -35,9 +37,9 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPost
   const [editingDescription, setEditingDescription] = useState(false);
   const [editingPriority, setEditingPriority] = useState(false);
   const [editingEstimate, setEditingEstimate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [titleDraft, setTitleDraft] = useState(task.title);
   const [descDraft, setDescDraft] = useState(task.description ?? '');
-  const [estimateDraft, setEstimateDraft] = useState(task.estimatedTime ?? '');
 
   const saveTitle = () => {
     const trimmed = titleDraft.trim();
@@ -50,12 +52,6 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPost
     const trimmed = descDraft.trim();
     if (trimmed !== (task.description ?? '')) onUpdate(task.id, { description: trimmed || undefined });
     setEditingDescription(false);
-  };
-
-  const saveEstimate = () => {
-    const trimmed = estimateDraft.trim();
-    if (trimmed !== (task.estimatedTime ?? '')) onUpdate(task.id, { estimatedTime: trimmed || undefined });
-    setEditingEstimate(false);
   };
 
   const formatDate = (date: Date) =>
@@ -131,30 +127,26 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPost
 
           <div className="relative group/estimate">
             {editingEstimate ? (
-              <input
+              <TimeEstimatePicker
+                value={task.estimatedTime}
+                onChange={(val) => onUpdate(task.id, { estimatedTime: val })}
+                onBlur={() => setEditingEstimate(false)}
                 autoFocus
-                value={estimateDraft}
-                onChange={(e) => setEstimateDraft(e.target.value)}
-                onBlur={saveEstimate}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') saveEstimate();
-                  if (e.key === 'Escape') { setEstimateDraft(task.estimatedTime ?? ''); setEditingEstimate(false); }
-                }}
-                placeholder="ex: 30min"
-                className="w-14 rounded bg-background px-1 text-[10px] text-foreground outline-none ring-1 ring-accent/50"
               />
             ) : (
               <button
-                onClick={() => { setEstimateDraft(task.estimatedTime ?? ''); setEditingEstimate(true); }}
+                onClick={() => setEditingEstimate(true)}
                 className="flex cursor-pointer items-center gap-1 rounded p-0.5 text-subtle-foreground transition-colors hover:text-foreground"
               >
                 <Clock size={10} />
                 <span className="text-[10px]">{task.estimatedTime ?? '—'}</span>
               </button>
             )}
-            <span className="pointer-events-none absolute top-full left-1/2 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-1.5 py-0.5 text-[10px] text-background opacity-0 transition-opacity group-hover/estimate:opacity-100 z-20">
-              Estimation
-            </span>
+            {!editingEstimate && (
+              <span className="pointer-events-none absolute top-full left-1/2 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-1.5 py-0.5 text-[10px] text-background opacity-0 transition-opacity group-hover/estimate:opacity-100 z-20">
+                Estimation
+              </span>
+            )}
           </div>
         </div>
 
@@ -162,19 +154,23 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPost
           <div className="relative group/postpone">
             <button
               onClick={() => onPostpone(task.id)}
-              className="cursor-pointer rounded p-1 text-subtle-foreground transition-colors hover:text-blue-400"
-              aria-label="Reporter à demain"
+              className={`cursor-pointer rounded p-1 transition-colors ${
+                task.scheduledFor === 'tomorrow'
+                  ? 'text-accent hover:text-accent/70'
+                  : 'text-subtle-foreground hover:text-blue-400'
+              }`}
+              aria-label={task.scheduledFor === 'tomorrow' ? 'Ramener à aujourd\'hui' : 'Reporter à demain'}
             >
               <CalendarClock size={13} />
             </button>
             <span className="pointer-events-none absolute top-full right-0 mt-1.5 whitespace-nowrap rounded bg-foreground px-1.5 py-0.5 text-[10px] text-background opacity-0 transition-opacity group-hover/postpone:opacity-100 z-20">
-              Reporter à demain
+              {task.scheduledFor === 'tomorrow' ? 'À faire aujourd\'hui' : 'Reporter à demain'}
             </span>
           </div>
 
           <div className="relative group/delete">
             <button
-              onClick={() => onDelete(task.id)}
+              onClick={() => setConfirmDelete(true)}
               className="cursor-pointer rounded p-1 text-subtle-foreground transition-colors hover:text-red-400"
               aria-label="Supprimer la tâche"
             >
@@ -184,6 +180,16 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPost
               Supprimer
             </span>
           </div>
+
+          {confirmDelete && (
+            <ConfirmDialog
+              title="Supprimer la tâche"
+              message={`« ${task.title} » sera définitivement supprimée. Cette action est irréversible.`}
+              confirmLabel="Supprimer"
+              onConfirm={() => { setConfirmDelete(false); onDelete(task.id); }}
+              onCancel={() => setConfirmDelete(false)}
+            />
+          )}
         </div>
       </div>
 

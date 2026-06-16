@@ -13,14 +13,14 @@ export interface UpdateTaskChanges {
   description?: string;
   priority?: Priority;
   estimatedTime?: string;
+  done?: boolean;
+  scheduledFor?: 'today' | 'tomorrow';
 }
 
 export interface TaskPort {
   getAll(): Promise<Task[]>;
   create(input: CreateTaskInput): Promise<Task>;
   update(id: number, changes: UpdateTaskChanges): Promise<Task>;
-  toggle(id: number): Promise<Task>;
-  postpone(id: number): Promise<Task>;
   reorder(ids: number[]): Promise<void>;
   remove(id: number): Promise<void>;
 }

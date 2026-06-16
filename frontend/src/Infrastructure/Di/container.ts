@@ -11,8 +11,6 @@ import { RefreshTokenUseCase } from '@application/UseCases/Auth/RefreshTokenUseC
 import { GetTasksUseCase } from '@application/UseCases/Task/GetTasksUseCase';
 import { CreateTaskUseCase } from '@application/UseCases/Task/CreateTaskUseCase';
 import { UpdateTaskUseCase } from '@application/UseCases/Task/UpdateTaskUseCase';
-import { ToggleTaskUseCase } from '@application/UseCases/Task/ToggleTaskUseCase';
-import { PostponeTaskUseCase } from '@application/UseCases/Task/PostponeTaskUseCase';
 import { ReorderTasksUseCase } from '@application/UseCases/Task/ReorderTasksUseCase';
 import { DeleteTaskUseCase } from '@application/UseCases/Task/DeleteTaskUseCase';
 
@@ -31,8 +29,6 @@ container.register({
   getTasksUseCase:     asClass(GetTasksUseCase).singleton(),
   createTaskUseCase:   asClass(CreateTaskUseCase).singleton(),
   updateTaskUseCase:   asClass(UpdateTaskUseCase).singleton(),
-  toggleTaskUseCase:   asClass(ToggleTaskUseCase).singleton(),
-  postponeTaskUseCase: asClass(PostponeTaskUseCase).singleton(),
   reorderTasksUseCase: asClass(ReorderTasksUseCase).singleton(),
   deleteTaskUseCase:   asClass(DeleteTaskUseCase).singleton(),
 });

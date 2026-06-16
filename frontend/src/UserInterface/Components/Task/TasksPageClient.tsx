@@ -55,35 +55,6 @@ export function TasksPageClient() {
           </button>
         </div>
 
-        {/* Barre de recherche + filtre statut */}
-        <div className="flex items-center gap-3 px-8 pb-5">
-          <div className="relative flex-1 max-w-xs">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher une tâche…"
-              className="w-full rounded-lg border border-input bg-elevated py-2 pl-8 pr-3 text-sm text-foreground placeholder-subtle-foreground focus:border-accent-hover focus:outline-none focus:ring-1 focus:ring-accent-hover"
-            />
-          </div>
-          <div className="flex items-center rounded-lg border border-border bg-elevated p-0.5">
-            {STATUS_TABS.map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setStatusFilter(key)}
-                className={`cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  statusFilter === key
-                    ? 'bg-accent text-white'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {key === statusFilter ? label : label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="space-y-5 px-8 pb-8">
           <div className="rounded-xl border border-border bg-card p-5">
             <div className="mb-4 flex items-center justify-between">
@@ -98,7 +69,7 @@ export function TasksPageClient() {
             {isLoading ? (
               <p className="py-6 text-center text-sm text-subtle-foreground">Chargement…</p>
             ) : (
-              <TaskTable tasks={applyFilters(todayTasks)} onToggle={toggleTask} emptyLabel="Aucune tâche pour aujourd'hui" />
+              <TaskTable tasks={todayTasks} onToggle={toggleTask} emptyLabel="Aucune tâche pour aujourd'hui" />
             )}
           </div>
 
@@ -107,12 +78,41 @@ export function TasksPageClient() {
             {isLoading ? (
               <p className="py-6 text-center text-sm text-subtle-foreground">Chargement…</p>
             ) : (
-              <TaskTable tasks={applyFilters(tomorrowTasks)} onToggle={toggleTask} emptyLabel="Aucune tâche pour demain" />
+              <TaskTable tasks={tomorrowTasks} onToggle={toggleTask} emptyLabel="Aucune tâche pour demain" />
             )}
           </div>
 
           <div className="rounded-xl border border-border bg-card p-5">
-            <h2 className="mb-4 text-sm font-semibold text-foreground">Toutes les tâches</h2>
+            <div className="mb-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">Toutes les tâches</h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative w-36">
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle-foreground" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Rechercher…"
+                    className="w-full rounded-lg border border-input bg-elevated py-1.5 pl-8 pr-3 text-xs text-foreground placeholder-subtle-foreground focus:border-accent-hover focus:outline-none focus:ring-1 focus:ring-accent-hover"
+                  />
+                </div>
+                <div className="flex items-center rounded-lg border border-border bg-elevated p-0.5">
+                  {STATUS_TABS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setStatusFilter(key)}
+                      className={`cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                        statusFilter === key ? 'bg-accent text-white' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
             {isLoading ? (
               <p className="py-6 text-center text-sm text-subtle-foreground">Chargement…</p>
             ) : (

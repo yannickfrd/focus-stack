@@ -36,7 +36,7 @@ src/
 │   └── Application/
 │       ├── UseCases/           # Use cases (orchestrate domain via ports)
 │       │   ├── Auth/           # RefreshTokenUseCase
-│       │   ├── Task/           # GetTasks, CreateTask, UpdateTask, Toggle, Postpone, Reorder, Delete
+│       │   ├── Task/           # GetTasks, CreateTask, UpdateTask, Reorder, Delete
 │       │   └── User/           # LoginUser, LogoutUser, RegisterUser
 │       └── Requests/           # Request value objects
 ├── Infrastructure/
@@ -80,25 +80,27 @@ From `focus-stack/frontend/`:
 |-------|-------------|
 | `/` | Dashboard — today's tasks + analytics (protected) |
 | `/tasks` | Full task list — today, tomorrow, all (protected) |
-| `/login` | Login — `POST /api/login` → JWT stored in memory, refresh token in HttpOnly cookie |
-| `/register` | Register — `POST /api/register` → redirect to `/login` |
+| `/login` | Login — `POST /login` → JWT stored in memory, refresh token in HttpOnly cookie |
+| `/register` | Register — `POST /register` → redirect to `/login` |
 
 ## Features
 
 ### Task management
-- **Sidebar** — toggleable right panel, drag-and-drop reordering, inline editing (title, description, priority, estimated time), 5-second delay before moving completed tasks to the done section.
+- **Sidebar** — toggleable right panel, drag-and-drop reordering, inline editing (title, description, priority, estimated time), 5-second delay before completed tasks move to the done section, 3-second delay before postponed tasks move to the tomorrow section.
+- **Sidebar sections** — today's tasks / tomorrow's tasks (separator "Demain") / done tasks (separator "Accomplies").
 - **Tables** — sortable columns (title, priority, estimated time, created date, status), global search, status filter (all / in progress / done).
-- **Actions** — create, update, toggle done, postpone to tomorrow, reorder, delete.
+- **Actions** — create, update, toggle done, postpone to tomorrow (toggleable), reorder, delete. Toggle and postpone use `PATCH /tasks/{id}` with explicit field values — no dedicated endpoints.
+- **Optimistic updates** — all mutations update the React Query cache immediately; the server confirms in the background. On error, the cache reverts to the previous state.
 
 ### Auth flow
-On every page load, `Providers` calls `POST /api/token/refresh` before rendering any children. A loading screen is shown during this phase. On success, the new JWT is stored in memory and rendering proceeds. On failure (no valid refresh cookie), children are still rendered — unauthenticated API calls receive a `401` and redirect to `/login`.
+On every page load, `Providers` calls `POST /token/refresh` before rendering any children. A loading screen is shown during this phase. On success, the new JWT is stored in memory and rendering proceeds. On failure (no valid refresh cookie), children are still rendered — unauthenticated API calls receive a `401` and redirect to `/login`.
 
 ### API proxy
-All API calls go through Next.js rewrites (`/api/*` → `http://127.0.0.1:8000/*`). This ensures cookies are always same-origin, avoiding `SameSite=Strict` cross-origin issues regardless of how the app is accessed (`localhost` or `127.0.0.1`).
+All API calls go through `src/proxy.ts` (Next.js 16 proxy convention). Requests with `Accept: application/json` are rewritten server-side to `http://127.0.0.1:8000`. This ensures cookies are always same-origin, avoiding `SameSite=Lax` cross-origin issues regardless of how the app is accessed.
 
 ## Environment
 
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_API_URL` | API base URL used by the frontend (set to `/api` to use the built-in proxy) |
-| `BACKEND_URL` | Backend URL used by Next.js rewrites server-side (default: `http://127.0.0.1:8000`) |
+| `NEXT_PUBLIC_API_URL` | API base URL used by the frontend (leave empty to use the proxy) |
+| `BACKEND_URL` | Backend URL used by the proxy server-side (default: `http://127.0.0.1:8000`) |

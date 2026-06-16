@@ -61,17 +61,9 @@ export class TaskHttpGateway extends AbstractHttpGateway implements TaskPort {
       ...(changes.description !== undefined && { description: changes.description ?? null }),
       ...(changes.priority !== undefined && { priority: PRIORITY_TO_API[changes.priority] }),
       ...(changes.estimatedTime !== undefined && { estimatedTime: changes.estimatedTime ?? null }),
+      ...(changes.done !== undefined && { done: changes.done }),
+      ...(changes.scheduledFor !== undefined && { scheduledFor: changes.scheduledFor }),
     });
-    return mapTask(task);
-  }
-
-  async toggle(id: number): Promise<Task> {
-    const task = await this.patch<ApiTask>(`/tasks/${id}/toggle`, {});
-    return mapTask(task);
-  }
-
-  async postpone(id: number): Promise<Task> {
-    const task = await this.patch<ApiTask>(`/tasks/${id}/postpone`, {});
     return mapTask(task);
   }
 

@@ -29,7 +29,7 @@ function LoadingScreen() {
 const refreshTokenUseCase = container.resolve<RefreshTokenUseCase>('refreshTokenUseCase');
 
 const [queryClient] = [new QueryClient({
-  defaultOptions: { queries: { staleTime: 60 * 1000 } },
+  defaultOptions: { queries: { staleTime: 60 * 60 * 1000 } },
 })];
 
 export function Providers({ children }: { children: ReactNode }) {
