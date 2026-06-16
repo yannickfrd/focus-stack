@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Core\Application\UseCase\Task;
 
+use App\Core\Application\Request\Task\UpdateTaskRequest;
 use App\Core\Application\UseCase\Task\UpdateTaskUseCase;
 use App\Core\Domain\Entity\Task\Priority;
 use App\Core\Domain\Entity\Task\ScheduledFor;
@@ -23,8 +24,10 @@ final class UpdateTaskUseCaseTest extends TestCase
         $repository->method('findByIdAndUserId')->with(1, 'user-1')->willReturn($task);
         $repository->expects($this->once())->method('save')->with($task);
 
+        $request = new UpdateTaskRequest('New Title', 'New desc', Priority::High, '2h', false, null);
+
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', 'New Title', 'New desc', Priority::High, '2h', null, null);
+        $result = $useCase->execute(1, 'user-1', $request);
 
         $this->assertSame('New Title', $result->getTitle());
         $this->assertSame('New desc', $result->getDescription());
@@ -40,8 +43,10 @@ final class UpdateTaskUseCaseTest extends TestCase
         $repository = $this->createStub(TaskRepositoryInterface::class);
         $repository->method('findByIdAndUserId')->willReturn($task);
 
+        $request = new UpdateTaskRequest('Task', null, Priority::Middle, null, true, null);
+
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', null, null, null, null, true, null);
+        $result = $useCase->execute(1, 'user-1', $request);
 
         $this->assertTrue($result->isDone());
     }
@@ -54,28 +59,30 @@ final class UpdateTaskUseCaseTest extends TestCase
         $repository = $this->createStub(TaskRepositoryInterface::class);
         $repository->method('findByIdAndUserId')->willReturn($task);
 
+        $request = new UpdateTaskRequest('Task', null, Priority::Middle, null, false, ScheduledFor::Tomorrow);
+
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', null, null, null, null, null, ScheduledFor::Tomorrow);
+        $result = $useCase->execute(1, 'user-1', $request);
 
         $this->assertSame(ScheduledFor::Tomorrow, $result->getScheduledFor());
     }
 
-    public function testExecuteSkipsNullFields(): void
+    public function testExecuteClearsNullableFields(): void
     {
-        $task = Task::create('Original', 'user-1', 'Original desc', Priority::Middle, null, '1h');
+        $task = Task::create('Task', 'user-1', 'Some desc', Priority::Middle, null, '1h');
         $task->setId(1);
 
         $repository = $this->createStub(TaskRepositoryInterface::class);
         $repository->method('findByIdAndUserId')->willReturn($task);
 
-        $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', null, null, null, null, null, null);
+        $request = new UpdateTaskRequest('Task', null, Priority::Middle, null, false, null);
 
-        $this->assertSame('Original', $result->getTitle());
-        $this->assertSame('Original desc', $result->getDescription());
-        $this->assertSame(Priority::Middle, $result->getPriority());
-        $this->assertSame('1h', $result->getEstimatedTime());
-        $this->assertFalse($result->isDone());
+        $useCase = new UpdateTaskUseCase($repository);
+        $result = $useCase->execute(1, 'user-1', $request);
+
+        $this->assertNull($result->getDescription());
+        $this->assertNull($result->getEstimatedTime());
+        $this->assertNull($result->getScheduledFor());
     }
 
     public function testExecuteThrowsWhenTaskNotFound(): void
@@ -86,7 +93,9 @@ final class UpdateTaskUseCaseTest extends TestCase
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Task not found.');
 
+        $request = new UpdateTaskRequest('Title', null, Priority::Middle, null, false, null);
+
         $useCase = new UpdateTaskUseCase($repository);
-        $useCase->execute(99, 'user-1', 'Title', null, null, null, null, null);
+        $useCase->execute(99, 'user-1', $request);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Core\Application\UseCase\Task;
 
+use App\Core\Application\Request\Task\CreateTaskRequest;
 use App\Core\Application\UseCase\Task\CreateTaskUseCase;
 use App\Core\Domain\Entity\Task\Priority;
 use App\Core\Domain\Entity\Task\ScheduledFor;
@@ -22,15 +23,16 @@ final class CreateTaskUseCaseTest extends TestCase
                 $task->setId(1);
             });
 
-        $useCase = new CreateTaskUseCase($repository);
-        $task = $useCase->execute(
-            userId: 'user-1',
+        $request = new CreateTaskRequest(
             title: 'Test Task',
             description: 'Desc',
             priority: Priority::High,
             scheduledFor: ScheduledFor::Today,
             estimatedTime: '30min',
         );
+
+        $useCase = new CreateTaskUseCase($repository);
+        $task = $useCase->execute(userId: 'user-1', request: $request);
 
         $this->assertInstanceOf(Task::class, $task);
         $this->assertSame(1, $task->getId());
@@ -47,8 +49,16 @@ final class CreateTaskUseCaseTest extends TestCase
             $task->setId(10);
         });
 
+        $request = new CreateTaskRequest(
+            title: 'Task',
+            description: null,
+            priority: Priority::Middle,
+            scheduledFor: null,
+            estimatedTime: null,
+        );
+
         $useCase = new CreateTaskUseCase($repository);
-        $task = $useCase->execute('user-1', 'Task', null, Priority::Middle, null, null);
+        $task = $useCase->execute('user-1', $request);
 
         $this->assertSame(5, $task->getPosition());
     }

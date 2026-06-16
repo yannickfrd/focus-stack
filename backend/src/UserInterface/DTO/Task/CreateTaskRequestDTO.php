@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\UserInterface\DTO\Task;
 
+use App\Core\Application\Request\Task\CreateTaskRequest;
+use App\Core\Domain\Entity\Task\Priority;
+use App\Core\Domain\Entity\Task\ScheduledFor;
 use Symfony\Component\Validator\Constraints as Assert;
 
-readonly class CreateTaskRequest
+readonly final class CreateTaskRequestDTO
 {
     public function __construct(
         #[Assert\NotBlank]
@@ -24,4 +27,15 @@ readonly class CreateTaskRequest
         #[Assert\Length(max: 50)]
         public ?string $estimatedTime = null,
     ) {}
+
+    public function toRequest(): CreateTaskRequest
+    {
+        return new CreateTaskRequest(
+            title: $this->title,
+            description: $this->description,
+            priority: Priority::from($this->priority),
+            scheduledFor: $this->scheduledFor !== null ? ScheduledFor::from($this->scheduledFor) : null,
+            estimatedTime: $this->estimatedTime,
+        );
+    }
 }

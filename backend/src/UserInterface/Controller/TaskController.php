@@ -9,12 +9,10 @@ use App\Core\Application\UseCase\Task\DeleteTaskUseCase;
 use App\Core\Application\UseCase\Task\ListTasksUseCase;
 use App\Core\Application\UseCase\Task\ReorderTasksUseCase;
 use App\Core\Application\UseCase\Task\UpdateTaskUseCase;
-use App\Core\Domain\Entity\Task\Priority;
-use App\Core\Domain\Entity\Task\ScheduledFor;
 use App\Infrastructure\Persistence\Doctrine\Entity\UserEntity;
-use App\UserInterface\DTO\Task\CreateTaskRequest;
+use App\UserInterface\DTO\Task\CreateTaskRequestDTO;
 use App\UserInterface\DTO\Task\ReorderTasksRequest;
-use App\UserInterface\DTO\Task\UpdateTaskRequest;
+use App\UserInterface\DTO\Task\UpdateTaskRequestDTO;
 use App\UserInterface\Presenter\Task\TaskPresenter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -45,25 +43,21 @@ final class TaskController extends AbstractController
     }
 
     #[Route('/tasks', name: 'task_create', methods: ['POST'])]
-    public function create(#[MapRequestPayload] CreateTaskRequest $request): JsonResponse
+    public function create(#[MapRequestPayload] CreateTaskRequestDTO $request): JsonResponse
     {
         /** @var UserEntity $user */
         $user = $this->getUser();
 
         $task = $this->createTaskUseCase->execute(
             userId: $user->getId(),
-            title: $request->title,
-            description: $request->description,
-            priority: Priority::from($request->priority),
-            scheduledFor: $request->scheduledFor !== null ? ScheduledFor::from($request->scheduledFor) : null,
-            estimatedTime: $request->estimatedTime,
+            request: $request->toRequest(),
         );
 
         return $this->json($this->taskPresenter->present($task), Response::HTTP_CREATED);
     }
 
     #[Route('/tasks/{id}', name: 'task_update', methods: ['PATCH'])]
-    public function update(int $id, #[MapRequestPayload] UpdateTaskRequest $request): JsonResponse
+    public function update(int $id, #[MapRequestPayload] UpdateTaskRequestDTO $request): JsonResponse
     {
         /** @var UserEntity $user */
         $user = $this->getUser();
@@ -71,12 +65,7 @@ final class TaskController extends AbstractController
         $task = $this->updateTaskUseCase->execute(
             taskId: $id,
             userId: $user->getId(),
-            title: $request->title,
-            description: $request->description,
-            priority: $request->priority !== null ? Priority::from($request->priority) : null,
-            estimatedTime: $request->estimatedTime,
-            done: $request->done,
-            scheduledFor: $request->scheduledFor !== null ? ScheduledFor::from($request->scheduledFor) : null,
+            request: $request->toRequest(),
         );
 
         return $this->json($this->taskPresenter->present($task));
