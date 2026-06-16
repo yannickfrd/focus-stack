@@ -23,12 +23,13 @@ final readonly class UpdateTaskUseCase
             throw new NotFoundException('Task not found.');
         }
 
-        $task->setTitle($request->title);
-        $task->setDescription($request->description);
-        $task->setPriority($request->priority);
-        $task->setEstimatedTime($request->estimatedTime);
-        $task->setDone($request->done);
-        $task->setScheduledFor($request->scheduledFor);
+        $task
+            ->setTitle($request->title)
+            ->setDescription($request->description)
+            ->setPriority($request->priority)
+            ->setEstimatedTime($request->estimatedTime)
+            ->setDone($request->done)
+            ->setScheduledFor($request->scheduledFor);
 
         $this->taskRepository->save($task);
 
