@@ -6,30 +6,17 @@ import { Sidebar } from '@ui/Components/Layout/Sidebar';
 import { TaskSidebar } from '@ui/Components/Task/TaskSidebar';
 import { TaskTable } from '@ui/Components/Task/TaskTable';
 import { useTasks } from '@ui/Hooks/Task/useTasks';
+import { useTaskFilters, STATUS_TABS } from '@ui/Hooks/Task/useTaskFilters';
 
-type StatusFilter = 'all' | 'pending' | 'done';
-
-export function TasksPageClient() {
+export function TasksScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const { search, setSearch, statusFilter, setStatusFilter, applyFilters } = useTaskFilters();
 
   const { tasks, isLoading, createTask, updateTask, toggleTask, postponeTask, reorderTask, deleteTask } = useTasks();
 
   const todayTasks = tasks.filter((t) => !t.scheduledFor || t.scheduledFor === 'today');
   const tomorrowTasks = tasks.filter((t) => t.scheduledFor === 'tomorrow');
   const pending = todayTasks.filter((t) => !t.done).length;
-
-  const applyFilters = (list: typeof tasks) =>
-    list
-      .filter((t) => !search || t.title.toLowerCase().includes(search.toLowerCase()))
-      .filter((t) => statusFilter === 'all' || (statusFilter === 'done' ? t.done : !t.done));
-
-  const STATUS_TABS: { key: StatusFilter; label: string }[] = [
-    { key: 'all', label: 'Toutes' },
-    { key: 'pending', label: 'En cours' },
-    { key: 'done', label: 'Terminées' },
-  ];
 
   return (
     <div className="flex h-screen bg-background text-foreground">

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { TasksPageClient } from '@ui/Components/Task/TasksPageClient';
+import { TasksScreen } from '@ui/Screens/Task/TasksScreen';
 
 export const metadata: Metadata = { title: 'Liste des tâches — Focus Stack' };
 
 export default function TasksPage() {
-  return <TasksPageClient />;
+  return <TasksScreen />;
 }
