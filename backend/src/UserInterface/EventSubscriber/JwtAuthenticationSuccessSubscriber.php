@@ -46,7 +46,7 @@ final readonly class JwtAuthenticationSuccessSubscriber implements EventSubscrib
                 ->withExpires($refreshToken->getExpiresAt())
                 ->withPath('/')
                 ->withHttpOnly(true)
-                ->withSameSite('strict')
+                ->withSameSite('lax')
                 ->withSecure($this->requestStack->getCurrentRequest()?->isSecure() ?? false)
         );
 

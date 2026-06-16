@@ -77,9 +77,7 @@ Depuis `focus-stack/backend/` :
 | `POST` | `/token/refresh` | Échanger un refresh token contre un nouveau JWT + nouveau refresh token |
 | `GET` | `/tasks` | Lister les tâches de l'utilisateur connecté (triées par position) |
 | `POST` | `/tasks` | Créer une tâche |
-| `PATCH` | `/tasks/{id}` | Modifier titre / description / priorité / estimation |
-| `PATCH` | `/tasks/{id}/toggle` | Inverser l'état done |
-| `PATCH` | `/tasks/{id}/postpone` | Passer scheduledFor à tomorrow |
+| `PATCH` | `/tasks/{id}` | Modifier n'importe quel champ (titre, description, priorité, estimation, done, scheduledFor) |
 | `PUT` | `/tasks/reorder` | Enregistrer l'ordre (liste d'ids ordonnés) |
 | `DELETE` | `/tasks/{id}` | Supprimer une tâche |
 
@@ -123,7 +121,7 @@ Réponse `200 OK` :
 }
 ```
 
-Un cookie HttpOnly `refresh_token` (`SameSite=Strict`) est également posé dans la réponse — valide **30 jours**.
+Un cookie HttpOnly `refresh_token` (`SameSite=Lax`) est également posé dans la réponse — valide **30 jours**.
 
 Le JWT est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
 
@@ -228,7 +226,9 @@ Corps de la requête :
   "title": "string",
   "description": "string|null",
   "priority": "high|middle|low",
-  "estimatedTime": "string|null"
+  "estimatedTime": "string|null",
+  "done": true,
+  "scheduledFor": "today|tomorrow"
 }
 ```
 
@@ -239,32 +239,6 @@ Réponses d'erreur :
 | Code | Condition |
 |------|-----------|
 | `400` | Validation échouée |
-| `401` | Token JWT absent ou invalide |
-| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
-
-### PATCH /tasks/{id}/toggle
-
-Nécessite un JWT valide. Pas de corps de requête.
-
-Réponse `200 OK` — objet tâche avec `done` inversé.
-
-Réponses d'erreur :
-
-| Code | Condition |
-|------|-----------|
-| `401` | Token JWT absent ou invalide |
-| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
-
-### PATCH /tasks/{id}/postpone
-
-Nécessite un JWT valide. Pas de corps de requête. Passe `scheduledFor` à `tomorrow`.
-
-Réponse `200 OK` — objet tâche standard.
-
-Réponses d'erreur :
-
-| Code | Condition |
-|------|-----------|
 | `401` | Token JWT absent ou invalide |
 | `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
 
@@ -309,6 +283,7 @@ Configuration dans `.env` — ne jamais committer `.env.local`.
 | Variable | Valeur |
 |----------|--------|
 | `DATABASE_URL` | `postgresql://app:password@127.0.0.1:5432/focus_stack` |
+| `CORS_ALLOW_ORIGIN` | `http://localhost:3000` — à surcharger dans `.env.local` pour d'autres origines |
 | `JWT_SECRET_KEY` | `%kernel.project_dir%/config/jwt/private.pem` |
 | `JWT_PUBLIC_KEY` | `%kernel.project_dir%/config/jwt/public.pem` |
 | `JWT_PASSPHRASE` | *(généré à l'installation)* |

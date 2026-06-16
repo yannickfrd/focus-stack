@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Core\Application\UseCase\Task;
 
 use App\Core\Application\UseCase\Task\UpdateTaskUseCase;
 use App\Core\Domain\Entity\Task\Priority;
+use App\Core\Domain\Entity\Task\ScheduledFor;
 use App\Core\Domain\Entity\Task\Task;
 use App\Core\Domain\Exception\NotFoundException;
 use App\Core\Domain\Repository\Task\TaskRepositoryInterface;
@@ -23,12 +24,40 @@ final class UpdateTaskUseCaseTest extends TestCase
         $repository->expects($this->once())->method('save')->with($task);
 
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', 'New Title', 'New desc', Priority::High, '2h');
+        $result = $useCase->execute(1, 'user-1', 'New Title', 'New desc', Priority::High, '2h', null, null);
 
         $this->assertSame('New Title', $result->getTitle());
         $this->assertSame('New desc', $result->getDescription());
         $this->assertSame(Priority::High, $result->getPriority());
         $this->assertSame('2h', $result->getEstimatedTime());
+    }
+
+    public function testExecuteUpdatesDoneField(): void
+    {
+        $task = Task::create('Task', 'user-1');
+        $task->setId(1);
+
+        $repository = $this->createStub(TaskRepositoryInterface::class);
+        $repository->method('findByIdAndUserId')->willReturn($task);
+
+        $useCase = new UpdateTaskUseCase($repository);
+        $result = $useCase->execute(1, 'user-1', null, null, null, null, true, null);
+
+        $this->assertTrue($result->isDone());
+    }
+
+    public function testExecuteUpdatesScheduledFor(): void
+    {
+        $task = Task::create('Task', 'user-1', null, scheduledFor: ScheduledFor::Today);
+        $task->setId(1);
+
+        $repository = $this->createStub(TaskRepositoryInterface::class);
+        $repository->method('findByIdAndUserId')->willReturn($task);
+
+        $useCase = new UpdateTaskUseCase($repository);
+        $result = $useCase->execute(1, 'user-1', null, null, null, null, null, ScheduledFor::Tomorrow);
+
+        $this->assertSame(ScheduledFor::Tomorrow, $result->getScheduledFor());
     }
 
     public function testExecuteSkipsNullFields(): void
@@ -40,12 +69,13 @@ final class UpdateTaskUseCaseTest extends TestCase
         $repository->method('findByIdAndUserId')->willReturn($task);
 
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', null, null, null, null);
+        $result = $useCase->execute(1, 'user-1', null, null, null, null, null, null);
 
         $this->assertSame('Original', $result->getTitle());
         $this->assertSame('Original desc', $result->getDescription());
         $this->assertSame(Priority::Middle, $result->getPriority());
         $this->assertSame('1h', $result->getEstimatedTime());
+        $this->assertFalse($result->isDone());
     }
 
     public function testExecuteThrowsWhenTaskNotFound(): void
@@ -57,6 +87,6 @@ final class UpdateTaskUseCaseTest extends TestCase
         $this->expectExceptionMessage('Task not found.');
 
         $useCase = new UpdateTaskUseCase($repository);
-        $useCase->execute(99, 'user-1', 'Title', null, null, null);
+        $useCase->execute(99, 'user-1', 'Title', null, null, null, null, null);
     }
 }

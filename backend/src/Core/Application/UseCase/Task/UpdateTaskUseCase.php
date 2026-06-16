@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Application\UseCase\Task;
 
 use App\Core\Domain\Entity\Task\Priority;
+use App\Core\Domain\Entity\Task\ScheduledFor;
 use App\Core\Domain\Entity\Task\Task;
 use App\Core\Domain\Exception\NotFoundException;
 use App\Core\Domain\Repository\Task\TaskRepositoryInterface;
@@ -22,6 +23,8 @@ final readonly class UpdateTaskUseCase
         ?string $description,
         ?Priority $priority,
         ?string $estimatedTime,
+        ?bool $done,
+        ?ScheduledFor $scheduledFor,
     ): Task {
         $task = $this->taskRepository->findByIdAndUserId($taskId, $userId);
 
@@ -43,6 +46,14 @@ final readonly class UpdateTaskUseCase
 
         if ($estimatedTime !== null) {
             $task->setEstimatedTime($estimatedTime);
+        }
+
+        if ($done !== null) {
+            $task->setDone($done);
+        }
+
+        if ($scheduledFor !== null) {
+            $task->setScheduledFor($scheduledFor);
         }
 
         $this->taskRepository->save($task);

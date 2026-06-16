@@ -7,9 +7,7 @@ namespace App\UserInterface\Controller;
 use App\Core\Application\UseCase\Task\CreateTaskUseCase;
 use App\Core\Application\UseCase\Task\DeleteTaskUseCase;
 use App\Core\Application\UseCase\Task\ListTasksUseCase;
-use App\Core\Application\UseCase\Task\PostponeTaskUseCase;
 use App\Core\Application\UseCase\Task\ReorderTasksUseCase;
-use App\Core\Application\UseCase\Task\ToggleTaskUseCase;
 use App\Core\Application\UseCase\Task\UpdateTaskUseCase;
 use App\Core\Domain\Entity\Task\Priority;
 use App\Core\Domain\Entity\Task\ScheduledFor;
@@ -30,8 +28,6 @@ final class TaskController extends AbstractController
         private readonly CreateTaskUseCase $createTaskUseCase,
         private readonly ListTasksUseCase $listTasksUseCase,
         private readonly UpdateTaskUseCase $updateTaskUseCase,
-        private readonly ToggleTaskUseCase $toggleTaskUseCase,
-        private readonly PostponeTaskUseCase $postponeTaskUseCase,
         private readonly ReorderTasksUseCase $reorderTasksUseCase,
         private readonly DeleteTaskUseCase $deleteTaskUseCase,
         private readonly TaskPresenter $taskPresenter,
@@ -79,29 +75,9 @@ final class TaskController extends AbstractController
             description: $request->description,
             priority: $request->priority !== null ? Priority::from($request->priority) : null,
             estimatedTime: $request->estimatedTime,
+            done: $request->done,
+            scheduledFor: $request->scheduledFor !== null ? ScheduledFor::from($request->scheduledFor) : null,
         );
-
-        return $this->json($this->taskPresenter->present($task));
-    }
-
-    #[Route('/tasks/{id}/toggle', name: 'task_toggle', methods: ['PATCH'])]
-    public function toggle(int $id): JsonResponse
-    {
-        /** @var UserEntity $user */
-        $user = $this->getUser();
-
-        $task = $this->toggleTaskUseCase->execute($id, $user->getId());
-
-        return $this->json($this->taskPresenter->present($task));
-    }
-
-    #[Route('/tasks/{id}/postpone', name: 'task_postpone', methods: ['PATCH'])]
-    public function postpone(int $id): JsonResponse
-    {
-        /** @var UserEntity $user */
-        $user = $this->getUser();
-
-        $task = $this->postponeTaskUseCase->execute($id, $user->getId());
 
         return $this->json($this->taskPresenter->present($task));
     }

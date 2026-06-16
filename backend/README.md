@@ -77,9 +77,7 @@ From `focus-stack/backend/`:
 | `POST` | `/token/refresh` | Exchange a refresh token for a new JWT + new refresh token |
 | `GET` | `/tasks` | List authenticated user's tasks (ordered by position) |
 | `POST` | `/tasks` | Create a task |
-| `PATCH` | `/tasks/{id}` | Update title / description / priority / estimated time |
-| `PATCH` | `/tasks/{id}/toggle` | Toggle done state |
-| `PATCH` | `/tasks/{id}/postpone` | Set scheduledFor to tomorrow |
+| `PATCH` | `/tasks/{id}` | Update any task field (title, description, priority, estimatedTime, done, scheduledFor) |
 | `PUT` | `/tasks/reorder` | Persist task order (ordered id list) |
 | `DELETE` | `/tasks/{id}` | Delete a task |
 
@@ -123,7 +121,7 @@ Response `200 OK`:
 }
 ```
 
-A `refresh_token` HttpOnly cookie (`SameSite=Strict`) is also set in the response — valid for **30 days**.
+A `refresh_token` HttpOnly cookie (`SameSite=Lax`) is also set in the response — valid for **30 days**.
 
 JWT is valid for **3600 seconds (1 hour)** — configurable via `token_ttl` in `config/packages/lexik_jwt_authentication.yaml`.
 
@@ -240,7 +238,9 @@ Request body:
   "title": "string",
   "description": "string|null",
   "priority": "high|middle|low",
-  "estimatedTime": "string|null"
+  "estimatedTime": "string|null",
+  "done": true,
+  "scheduledFor": "today|tomorrow"
 }
 ```
 
@@ -251,32 +251,6 @@ Error responses:
 | Code | Condition |
 |------|-----------|
 | `400` | Validation failed |
-| `401` | Missing or invalid JWT token |
-| `404` | Task not found or does not belong to the authenticated user |
-
-### PATCH /tasks/{id}/toggle
-
-Requires a valid JWT. No request body.
-
-Response `200 OK` — standard task object with `done` flipped.
-
-Error responses:
-
-| Code | Condition |
-|------|-----------|
-| `401` | Missing or invalid JWT token |
-| `404` | Task not found or does not belong to the authenticated user |
-
-### PATCH /tasks/{id}/postpone
-
-Requires a valid JWT. No request body. Sets `scheduledFor` to `tomorrow`.
-
-Response `200 OK` — standard task object.
-
-Error responses:
-
-| Code | Condition |
-|------|-----------|
 | `401` | Missing or invalid JWT token |
 | `404` | Task not found or does not belong to the authenticated user |
 
@@ -321,6 +295,7 @@ Configuration in `.env` — never commit `.env.local`.
 | Variable | Value |
 |----------|-------|
 | `DATABASE_URL` | `postgresql://app:password@127.0.0.1:5432/focus_stack` |
+| `CORS_ALLOW_ORIGIN` | `http://localhost:3000` — override in `.env.local` for other origins |
 | `JWT_SECRET_KEY` | `%kernel.project_dir%/config/jwt/private.pem` |
 | `JWT_PUBLIC_KEY` | `%kernel.project_dir%/config/jwt/public.pem` |
 | `JWT_PASSPHRASE` | *(generated on install)* |

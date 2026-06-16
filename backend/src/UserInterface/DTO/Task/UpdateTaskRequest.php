@@ -14,10 +14,15 @@ readonly class UpdateTaskRequest
 
         public ?string $description = null,
 
-        #[Assert\Choice(choices: ['high', 'middle', 'low'], allowNull: true)]
+        #[Assert\Choice(choices: ['high', 'middle', 'low'])]
         public ?string $priority = null,
 
         #[Assert\Length(max: 50)]
         public ?string $estimatedTime = null,
+
+        public ?bool $done = null,
+
+        #[Assert\Choice(choices: ['today', 'tomorrow'])]
+        public ?string $scheduledFor = null,
     ) {}
 }
