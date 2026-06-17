@@ -21,7 +21,7 @@ readonly final class UpdateTaskRequestDTO
         #[Assert\Choice(callback: [Priority::class, 'values'])]
         public string $priority = 'middle',
 
-        #[Assert\Length(max: 50)]
+        #[Assert\Regex(pattern: '/^([1-8]h( (15|30|45)m)?|(15|30|45)m)$/')]
         public ?string $estimatedTime = null,
 
         public bool $done = false,

@@ -24,7 +24,7 @@ readonly final class CreateTaskRequestDTO
         #[Assert\Choice(callback: [ScheduledFor::class, 'values'])]
         public ?string $scheduledFor = 'today',
 
-        #[Assert\Length(max: 50)]
+        #[Assert\Regex(pattern: '/^([1-8]h( (15|30|45)m)?|(15|30|45)m)$/')]
         public ?string $estimatedTime = null,
     ) {}
 
