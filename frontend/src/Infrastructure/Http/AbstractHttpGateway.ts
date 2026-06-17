@@ -6,7 +6,6 @@ export abstract class AbstractHttpGateway {
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
-    console.log(this.baseUrl)
   }
 
   private buildHeaders(path: string): Record<string, string> {
@@ -22,7 +21,6 @@ export abstract class AbstractHttpGateway {
   }
 
   private async request<T>(path: string, options: RequestInit): Promise<T> {
-    console.log(`${this.baseUrl}${path}`);
     const res = await fetch(`${this.baseUrl}${path}`, {
       ...options,
       headers: this.buildHeaders(path),
