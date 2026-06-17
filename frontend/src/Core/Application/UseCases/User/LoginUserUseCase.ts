@@ -2,7 +2,10 @@ import type { LoginUserRequest } from '@application/Requests/User/LoginUserReque
 import type { UserLoginPort, LoginResult } from '@domain/Ports/User/UserLoginPort';
 
 export class LoginUserUseCase {
-  constructor(private readonly userLoginPort: UserLoginPort) {}
+  private readonly userLoginPort: UserLoginPort;
+  constructor({ userLoginPort }: { userLoginPort: UserLoginPort }) {
+    this.userLoginPort = userLoginPort;
+  }
 
   execute(command: LoginUserRequest): Promise<LoginResult> {
     return this.userLoginPort.login({

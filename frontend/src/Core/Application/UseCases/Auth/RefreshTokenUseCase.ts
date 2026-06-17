@@ -1,7 +1,10 @@
 import type { TokenRefreshPort, RefreshTokenResult } from '@domain/Ports/Auth/TokenRefreshPort';
 
 export class RefreshTokenUseCase {
-  constructor(private readonly tokenRefreshPort: TokenRefreshPort) {}
+  private readonly tokenRefreshPort: TokenRefreshPort;
+  constructor({ tokenRefreshPort }: { tokenRefreshPort: TokenRefreshPort }) {
+    this.tokenRefreshPort = tokenRefreshPort;
+  }
 
   execute(): Promise<RefreshTokenResult> {
     return this.tokenRefreshPort.refresh();

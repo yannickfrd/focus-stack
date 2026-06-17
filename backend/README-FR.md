@@ -58,7 +58,7 @@ Depuis `focus-stack/backend/` :
 | Cible | Description |
 |-------|-------------|
 | `make install` | `composer install` |
-| `make start` | Démarre le serveur Symfony (`http://127.0.0.1:8000`) |
+| `make start` | Démarre le serveur Symfony (`http://localhost:8000`) |
 | `make stop` | Arrête le serveur Symfony |
 | `make db-create` | Crée la base de données (première fois uniquement) |
 | `make migrate` | Joue les migrations en attente |
@@ -75,6 +75,11 @@ Depuis `focus-stack/backend/` :
 | `POST` | `/login` | S'authentifier et recevoir un token JWT |
 | `POST` | `/logout` | Invalider la session (le client supprime le token) |
 | `POST` | `/token/refresh` | Échanger un refresh token contre un nouveau JWT + nouveau refresh token |
+| `GET` | `/tasks` | Lister les tâches de l'utilisateur connecté (triées par position) |
+| `POST` | `/tasks` | Créer une tâche |
+| `PATCH` | `/tasks/{id}` | Modifier n'importe quel champ (titre, description, priorité, estimation, done, scheduledFor) |
+| `PUT` | `/tasks/reorder` | Enregistrer l'ordre (liste d'ids ordonnés) |
+| `DELETE` | `/tasks/{id}` | Supprimer une tâche |
 
 ### POST /register
 
@@ -116,7 +121,7 @@ Réponse `200 OK` :
 }
 ```
 
-Un cookie HttpOnly `refresh_token` (`SameSite=Strict`) est également posé dans la réponse — valide **30 jours**.
+Un cookie HttpOnly `refresh_token` (`SameSite=Lax`) est également posé dans la réponse — valide **30 jours**.
 
 Le JWT est valide **3600 secondes (1 heure)** — configurable via `token_ttl` dans `config/packages/lexik_jwt_authentication.yaml`.
 
@@ -161,6 +166,116 @@ Réponses d'erreur :
 |------|-----------|
 | `401` | Cookie absent, refresh token introuvable, expiré, ou utilisateur associé supprimé |
 
+### GET /tasks
+
+Nécessite un JWT valide dans le header `Authorization: Bearer <token>`.
+
+Réponse `200 OK` :
+```json
+[
+  {
+    "id": 1,
+    "title": "Terminer la doc API",
+    "description": "...",
+    "priority": "high",
+    "done": false,
+    "scheduledFor": "today",
+    "estimatedTime": "2h",
+    "createdAt": "2026-06-15T09:00:00+00:00"
+  }
+]
+```
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Token JWT absent ou invalide |
+
+### POST /tasks
+
+Nécessite un JWT valide.
+
+Corps de la requête :
+```json
+{
+  "title": "string",
+  "description": "string|null",
+  "priority": "high|middle|low",
+  "scheduledFor": "today|tomorrow",
+  "estimatedTime": "string|null"
+}
+```
+
+Réponse `201 Created` — objet tâche standard (voir GET /tasks).
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation échouée (titre vide, priorité ou scheduledFor invalide) |
+| `401` | Token JWT absent ou invalide |
+
+### PATCH /tasks/{id}
+
+Nécessite un JWT valide. Tous les champs sont optionnels — seuls les champs fournis (non-null) sont mis à jour.
+
+Corps de la requête :
+```json
+{
+  "title": "string",
+  "description": "string|null",
+  "priority": "high|middle|low",
+  "estimatedTime": "string|null",
+  "done": true,
+  "scheduledFor": "today|tomorrow"
+}
+```
+
+Réponse `200 OK` — objet tâche standard.
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation échouée |
+| `401` | Token JWT absent ou invalide |
+| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
+
+### PUT /tasks/reorder
+
+Nécessite un JWT valide.
+
+Corps de la requête :
+```json
+{
+  "ids": [3, 1, 5, 2, 4]
+}
+```
+
+Réponse `204 No Content`
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation échouée (ids vide, valeurs non entières) |
+| `401` | Token JWT absent ou invalide |
+| `404` | Un des ids n'appartient pas à l'utilisateur connecté |
+
+### DELETE /tasks/{id}
+
+Nécessite un JWT valide. Pas de corps de requête.
+
+Réponse `204 No Content`
+
+Réponses d'erreur :
+
+| Code | Condition |
+|------|-----------|
+| `401` | Token JWT absent ou invalide |
+| `404` | Tâche introuvable ou n'appartient pas à l'utilisateur connecté |
+
 ## Environnement
 
 Configuration dans `.env` — ne jamais committer `.env.local`.
@@ -168,6 +283,7 @@ Configuration dans `.env` — ne jamais committer `.env.local`.
 | Variable | Valeur |
 |----------|--------|
 | `DATABASE_URL` | `postgresql://app:password@127.0.0.1:5432/focus_stack` |
+| `CORS_ALLOW_ORIGIN` | `http://localhost:3000` — à surcharger dans `.env.local` pour d'autres origines |
 | `JWT_SECRET_KEY` | `%kernel.project_dir%/config/jwt/private.pem` |
 | `JWT_PUBLIC_KEY` | `%kernel.project_dir%/config/jwt/public.pem` |
 | `JWT_PASSPHRASE` | *(généré à l'installation)* |
