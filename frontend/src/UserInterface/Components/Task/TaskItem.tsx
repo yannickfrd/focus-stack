@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Trash2, CalendarClock, Clock } from 'lucide-react';
+import { Trash2, CalendarClock, Clock, Timer } from 'lucide-react';
 import { CheckIcon } from '@ui/Components/Icons/CheckIcon';
 import { TimeEstimatePicker } from './TimeEstimatePicker';
 import { ConfirmDialog } from '@ui/Components/Common/ConfirmDialog';
@@ -28,9 +28,10 @@ interface Props {
   onUpdate: (id: number, changes: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'estimatedTime'>>) => void;
   onReorder: (draggedId: number, targetId: number, position: 'before' | 'after') => void;
   onPostpone: (id: number) => void;
+  onFocus?: (id: number) => void;
 }
 
-export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPostpone }: Props) {
+export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPostpone, onFocus }: Props) {
   const liRef = useRef<HTMLLIElement>(null);
   const [dropPosition, setDropPosition] = useState<'above' | 'below' | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -151,6 +152,21 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate, onReorder, onPost
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
+          {!task.done && onFocus && (
+            <div className="relative group/focus">
+              <button
+                onClick={() => onFocus(task.id)}
+                className="cursor-pointer rounded p-1 text-subtle-foreground transition-colors hover:text-accent"
+                aria-label="Démarrer une session focus"
+              >
+                <Timer size={13} />
+              </button>
+              <span className="pointer-events-none absolute top-full right-0 mt-1.5 whitespace-nowrap rounded bg-foreground px-1.5 py-0.5 text-[10px] text-background opacity-0 transition-opacity group-hover/focus:opacity-100 z-20">
+                Mode Focus
+              </span>
+            </div>
+          )}
+
           <div className="relative group/postpone">
             <button
               onClick={() => onPostpone(task.id)}

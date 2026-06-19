@@ -7,21 +7,7 @@ import { TaskSidebar } from '@ui/Components/Task/TaskSidebar';
 import { TaskTable } from '@ui/Components/Task/TaskTable';
 import { useTasks } from '@ui/Hooks/Task/useTasks';
 import { useTaskFilters, STATUS_TABS } from '@ui/Hooks/Task/useTaskFilters';
-
-const stats = [
-  {
-    label: "Focus aujourd'hui",
-    value: '2h 45m',
-    delta: '+12 min vs hier',
-    accent: 'border-orange-500/20 bg-orange-500/10 text-orange-400',
-  },
-  {
-    label: 'Série en cours',
-    value: '7 jours',
-    delta: 'Record personnel : 14 jours',
-    accent: 'border-blue-500/20 bg-blue-500/10 text-blue-400',
-  },
-];
+import { useFocusTime } from '@ui/Hooks/Focus/useFocusTime';
 
 const dailyItems = [
   { id: 1, title: 'Routine matinale', dot: 'bg-green-500' },
@@ -31,19 +17,62 @@ const dailyItems = [
   { id: 5, title: 'Lecture', dot: 'bg-orange-500' },
 ];
 
-const weekBars = [3, 5, 4, 7, 6, 8, 5];
 const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+function formatDuration(minutes: number): string {
+  if (minutes === 0) return '0min';
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}min`;
+}
+
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate();
+}
+
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 export function DashboardScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { search, setSearch, statusFilter, setStatusFilter, applyFilters } = useTaskFilters();
 
   const { tasks, isLoading, createTask, updateTask, toggleTask, postponeTask, reorderTask, deleteTask } = useTasks();
+  const { focusTimes } = useFocusTime();
 
   const todayTasks = tasks.filter((t) => !t.scheduledFor || t.scheduledFor === 'today');
   const todayDone = todayTasks.filter((t) => t.done).length;
   const todayTotal = todayTasks.length;
   const pending = todayTasks.filter((t) => !t.done).length;
+
+  const now = new Date();
+  const weekStart = getWeekStart(now);
+
+  const todayMinutes = focusTimes
+    .filter((ft) => isSameDay(ft.completedAt, now))
+    .reduce((sum, ft) => sum + ft.duration, 0);
+
+  const weekSessions = focusTimes.filter((ft) => ft.completedAt >= weekStart);
+  const weekMinutes = weekSessions.reduce((sum, ft) => sum + ft.duration, 0);
+
+  const weekBars = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(weekStart);
+    day.setDate(day.getDate() + i);
+    return focusTimes
+      .filter((ft) => isSameDay(ft.completedAt, day))
+      .reduce((sum, ft) => sum + ft.duration, 0);
+  });
+  const weekBarsMax = Math.max(...weekBars, 1);
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -74,13 +103,18 @@ export function DashboardScreen() {
 
         <div className="space-y-5 px-8 pb-8">
           <div className="grid grid-cols-3 gap-4">
-            {stats.map((s) => (
-              <div key={s.label} className={`rounded-xl border p-5 ${s.accent.split(' ').slice(0, 2).join(' ')}`}>
-                <p className="text-xs uppercase tracking-wide text-subtle-foreground">{s.label}</p>
-                <p className={`mt-1 text-2xl font-bold ${s.accent.split(' ')[2]}`}>{s.value}</p>
-                <p className="mt-1 text-xs text-subtle-foreground">{s.delta}</p>
-              </div>
-            ))}
+            <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-5">
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Focus aujourd'hui</p>
+              <p className="mt-1 text-2xl font-bold text-orange-400">{formatDuration(todayMinutes)}</p>
+              <p className="mt-1 text-xs text-subtle-foreground">
+                {focusTimes.filter((ft) => isSameDay(ft.completedAt, now)).length} session{focusTimes.filter((ft) => isSameDay(ft.completedAt, now)).length > 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-5">
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Cette semaine</p>
+              <p className="mt-1 text-2xl font-bold text-blue-400">{formatDuration(weekMinutes)}</p>
+              <p className="mt-1 text-xs text-subtle-foreground">{weekSessions.length} session{weekSessions.length > 1 ? 's' : ''}</p>
+            </div>
             <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-5">
               <p className="text-xs uppercase tracking-wide text-subtle-foreground">Tâches accomplies</p>
               <p className="mt-1 text-2xl font-bold text-green-400">{todayDone} / {todayTotal}</p>
@@ -170,18 +204,21 @@ export function DashboardScreen() {
               <h2 className="text-sm font-semibold text-foreground">Analytique</h2>
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg bg-elevated p-3">
-                  <p className="text-xl font-bold text-foreground">23</p>
-                  <p className="text-xs text-muted-foreground">Tâches cette semaine</p>
+                  <p className="text-xl font-bold text-foreground">{weekSessions.length}</p>
+                  <p className="text-xs text-muted-foreground">Sessions cette semaine</p>
                 </div>
                 <div className="rounded-lg bg-elevated p-3">
-                  <p className="text-lg font-bold text-foreground">12h 45m</p>
+                  <p className="text-lg font-bold text-foreground">{formatDuration(weekMinutes)}</p>
                   <p className="text-xs text-muted-foreground">Temps de focus</p>
                 </div>
               </div>
               <div className="flex flex-1 items-end gap-1">
-                {weekBars.map((h, i) => (
+                {weekBars.map((minutes, i) => (
                   <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                    <div className="w-full rounded-sm bg-accent/70" style={{ height: `${(h / 8) * 72}px` }} />
+                    <div
+                      className="w-full rounded-sm bg-accent/70"
+                      style={{ height: `${(minutes / weekBarsMax) * 72}px` }}
+                    />
                     <span className="text-[9px] text-subtle-foreground">{days[i]}</span>
                   </div>
                 ))}
