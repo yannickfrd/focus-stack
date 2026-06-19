@@ -15,7 +15,7 @@ final readonly class UpdateTaskUseCase
         private TaskRepositoryInterface $taskRepository,
     ) {}
 
-    public function execute(int $taskId, string $userId, UpdateTaskRequest $request): Task
+    public function execute(string $taskId, string $userId, UpdateTaskRequest $request): Task
     {
         $task = $this->taskRepository->findByIdAndUserId($taskId, $userId);
 

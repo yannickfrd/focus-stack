@@ -12,6 +12,7 @@ final class FocusTimeMapper
     public static function toEntity(FocusTime $focusTime): FocusTimeEntity
     {
         $entity = new FocusTimeEntity();
+        $entity->setId($focusTime->getId());
         $entity->setTaskId($focusTime->getTaskId());
         $entity->setDuration($focusTime->getDuration());
         $entity->setCompletedAt($focusTime->getCompletedAt());
@@ -23,11 +24,11 @@ final class FocusTimeMapper
     public static function toDomain(FocusTimeEntity $entity): FocusTime
     {
         return FocusTime::create(
+            id: $entity->getId(),
             userId: $entity->getUserId(),
             duration: $entity->getDuration(),
             taskId: $entity->getTaskId(),
         )
-        ->setId($entity->getId())
         ->setCompletedAt($entity->getCompletedAt());
     }
 }

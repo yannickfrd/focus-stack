@@ -11,8 +11,8 @@ readonly class ReorderTasksRequest
     public function __construct(
         #[Assert\NotBlank]
         #[Assert\All([
-            new Assert\Type('integer'),
-            new Assert\Positive(),
+            new Assert\Type('string'),
+            new Assert\Uuid(),
         ])]
         public array $ids,
     ) {}

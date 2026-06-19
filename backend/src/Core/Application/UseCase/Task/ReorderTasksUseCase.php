@@ -13,7 +13,7 @@ final readonly class ReorderTasksUseCase
         private TaskRepositoryInterface $taskRepository,
     ) {}
 
-    /** @param int[] $ids */
+    /** @param string[] $ids */
     public function execute(array $ids, string $userId): void
     {
         $tasks = $this->taskRepository->findAllByUserId($userId);

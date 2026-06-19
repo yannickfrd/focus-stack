@@ -13,7 +13,7 @@ interface TaskRepositoryInterface
     /** @param Task[] $tasks */
     public function saveAll(array $tasks): void;
 
-    public function findByIdAndUserId(int $id, string $userId): ?Task;
+    public function findByIdAndUserId(string $id, string $userId): ?Task;
 
     /** @return Task[] */
     public function findAllByUserId(string $userId): array;

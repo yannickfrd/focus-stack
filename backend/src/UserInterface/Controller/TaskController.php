@@ -57,7 +57,7 @@ final class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}', name: 'task_update', methods: ['PATCH'])]
-    public function update(int $id, #[MapRequestPayload] UpdateTaskRequestDTO $request): JsonResponse
+    public function update(string $id, #[MapRequestPayload] UpdateTaskRequestDTO $request): JsonResponse
     {
         /** @var UserEntity $user */
         $user = $this->getUser();
@@ -83,7 +83,7 @@ final class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}', name: 'task_delete', methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(string $id): JsonResponse
     {
         /** @var UserEntity $user */
         $user = $this->getUser();

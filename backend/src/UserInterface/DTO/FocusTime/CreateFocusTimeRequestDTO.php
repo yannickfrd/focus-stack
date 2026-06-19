@@ -15,8 +15,8 @@ readonly final class CreateFocusTimeRequestDTO
         #[Assert\LessThanOrEqual(value: 480)]
         public int $duration,
 
-        #[Assert\Positive]
-        public ?int $taskId = null,
+        #[Assert\Uuid]
+        public ?string $taskId = null,
     ) {}
 
     public function toRequest(): CreateFocusTimeRequest

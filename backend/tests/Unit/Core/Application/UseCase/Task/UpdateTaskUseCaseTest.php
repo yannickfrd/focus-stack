@@ -15,19 +15,20 @@ use PHPUnit\Framework\TestCase;
 
 final class UpdateTaskUseCaseTest extends TestCase
 {
+    private const string TASK_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
     public function testExecuteUpdatesAndSavesTask(): void
     {
-        $task = Task::create('Old Title', 'user-1', 'Old desc', Priority::Low);
-        $task->setId(1);
+        $task = Task::create(self::TASK_UUID, 'Old Title', 'user-1', 'Old desc', Priority::Low);
 
         $repository = $this->createMock(TaskRepositoryInterface::class);
-        $repository->method('findByIdAndUserId')->with(1, 'user-1')->willReturn($task);
+        $repository->method('findByIdAndUserId')->with(self::TASK_UUID, 'user-1')->willReturn($task);
         $repository->expects($this->once())->method('save')->with($task);
 
         $request = new UpdateTaskRequest('New Title', 'New desc', Priority::High, '2h', false, null);
 
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', $request);
+        $result = $useCase->execute(self::TASK_UUID, 'user-1', $request);
 
         $this->assertSame('New Title', $result->getTitle());
         $this->assertSame('New desc', $result->getDescription());
@@ -37,8 +38,7 @@ final class UpdateTaskUseCaseTest extends TestCase
 
     public function testExecuteUpdatesDoneField(): void
     {
-        $task = Task::create('Task', 'user-1');
-        $task->setId(1);
+        $task = Task::create(self::TASK_UUID, 'Task', 'user-1');
 
         $repository = $this->createStub(TaskRepositoryInterface::class);
         $repository->method('findByIdAndUserId')->willReturn($task);
@@ -46,15 +46,14 @@ final class UpdateTaskUseCaseTest extends TestCase
         $request = new UpdateTaskRequest('Task', null, Priority::Middle, null, true, null);
 
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', $request);
+        $result = $useCase->execute(self::TASK_UUID, 'user-1', $request);
 
         $this->assertTrue($result->isDone());
     }
 
     public function testExecuteUpdatesScheduledFor(): void
     {
-        $task = Task::create('Task', 'user-1', null, scheduledFor: ScheduledFor::Today);
-        $task->setId(1);
+        $task = Task::create(self::TASK_UUID, 'Task', 'user-1', null, scheduledFor: ScheduledFor::Today);
 
         $repository = $this->createStub(TaskRepositoryInterface::class);
         $repository->method('findByIdAndUserId')->willReturn($task);
@@ -62,15 +61,14 @@ final class UpdateTaskUseCaseTest extends TestCase
         $request = new UpdateTaskRequest('Task', null, Priority::Middle, null, false, ScheduledFor::Tomorrow);
 
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', $request);
+        $result = $useCase->execute(self::TASK_UUID, 'user-1', $request);
 
         $this->assertSame(ScheduledFor::Tomorrow, $result->getScheduledFor());
     }
 
     public function testExecuteClearsNullableFields(): void
     {
-        $task = Task::create('Task', 'user-1', 'Some desc', Priority::Middle, null, '1h');
-        $task->setId(1);
+        $task = Task::create(self::TASK_UUID, 'Task', 'user-1', 'Some desc', Priority::Middle, null, '1h');
 
         $repository = $this->createStub(TaskRepositoryInterface::class);
         $repository->method('findByIdAndUserId')->willReturn($task);
@@ -78,7 +76,7 @@ final class UpdateTaskUseCaseTest extends TestCase
         $request = new UpdateTaskRequest('Task', null, Priority::Middle, null, false, null);
 
         $useCase = new UpdateTaskUseCase($repository);
-        $result = $useCase->execute(1, 'user-1', $request);
+        $result = $useCase->execute(self::TASK_UUID, 'user-1', $request);
 
         $this->assertNull($result->getDescription());
         $this->assertNull($result->getEstimatedTime());
@@ -96,6 +94,6 @@ final class UpdateTaskUseCaseTest extends TestCase
         $request = new UpdateTaskRequest('Title', null, Priority::Middle, null, false, null);
 
         $useCase = new UpdateTaskUseCase($repository);
-        $useCase->execute(99, 'user-1', $request);
+        $useCase->execute('00000000-0000-0000-0000-000000000099', 'user-1', $request);
     }
 }

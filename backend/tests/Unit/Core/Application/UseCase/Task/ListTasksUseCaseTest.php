@@ -13,8 +13,8 @@ final class ListTasksUseCaseTest extends TestCase
 {
     public function testExecuteReturnsTasksFromRepository(): void
     {
-        $task1 = Task::create('Task A', 'user-1');
-        $task2 = Task::create('Task B', 'user-1');
+        $task1 = Task::create('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Task A', 'user-1');
+        $task2 = Task::create('b1ffcd00-0d1c-5fg9-cc7e-7cc0ce491b22', 'Task B', 'user-1');
 
         $repository = $this->createStub(TaskRepositoryInterface::class);
         $repository->method('findAllByUserId')->willReturn([$task1, $task2]);

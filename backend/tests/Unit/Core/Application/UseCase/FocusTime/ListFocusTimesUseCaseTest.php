@@ -14,8 +14,8 @@ final class ListFocusTimesUseCaseTest extends TestCase
     public function testExecuteReturnsFocusTimesFromRepository(): void
     {
         $focusTimes = [
-            FocusTime::create('user-1', 25),
-            FocusTime::create('user-1', 50),
+            FocusTime::create('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user-1', 25),
+            FocusTime::create('b1ffcd00-0d1c-5fg9-cc7e-7cc0ce491b22', 'user-1', 50),
         ];
 
         $repository = $this->createStub(FocusTimeRepositoryInterface::class);

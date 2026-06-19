@@ -8,6 +8,6 @@ readonly class CreateFocusTimeRequest
 {
     public function __construct(
         public int $duration,
-        public ?int $taskId,
+        public ?string $taskId,
     ) {}
 }

@@ -13,9 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
 final class TaskEntity
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private int $id;
+    #[ORM\Column(type: 'string', length: 36)]
+    private string $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $title;
@@ -44,12 +43,12 @@ final class TaskEntity
     #[ORM\Column(type: 'string', length: 36)]
     private string $userId;
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function setId(int $id): void
+    public function setId(string $id): void
     {
         $this->id = $id;
     }

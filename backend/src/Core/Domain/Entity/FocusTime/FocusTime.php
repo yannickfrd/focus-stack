@@ -6,8 +6,8 @@ namespace App\Core\Domain\Entity\FocusTime;
 
 final class FocusTime
 {
-    private ?int $id = null;
-    private ?int $taskId;
+    private string $id;
+    private ?string $taskId;
     private int $duration;
     private \DateTimeImmutable $completedAt;
     private string $userId;
@@ -18,11 +18,13 @@ final class FocusTime
     }
 
     public static function create(
+        string $id,
         string $userId,
         int $duration,
-        ?int $taskId = null,
+        ?string $taskId = null,
     ): self {
         $focusTime = new self();
+        $focusTime->id = $id;
         $focusTime->setUserId($userId);
         $focusTime->setDuration($duration);
         $focusTime->setTaskId($taskId);
@@ -30,24 +32,17 @@ final class FocusTime
         return $focusTime;
     }
 
-    public function getId(): ?int
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function setId(int $id): self
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    public function getTaskId(): ?int
+    public function getTaskId(): ?string
     {
         return $this->taskId;
     }
 
-    public function setTaskId(?int $taskId): self
+    public function setTaskId(?string $taskId): self
     {
         $this->taskId = $taskId;
 

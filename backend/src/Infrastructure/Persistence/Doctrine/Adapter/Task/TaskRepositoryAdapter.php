@@ -25,21 +25,18 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
 
     public function save(Task $task): void
     {
-        if ($task->getId() !== null) {
-            /** @var TaskEntity|null $entity */
-            $entity = $this->repository->find($task->getId());
-            if ($entity !== null) {
-                TaskMapper::updateEntity($task, $entity);
-                $this->repository->save($entity);
-                $this->invalidateTask($task->getId(), $task->getUserId());
+        /** @var TaskEntity|null $entity */
+        $entity = $this->repository->find($task->getId());
+        if ($entity !== null) {
+            TaskMapper::updateEntity($task, $entity);
+            $this->repository->save($entity);
+            $this->invalidateTask($task->getId(), $task->getUserId());
 
-                return;
-            }
+            return;
         }
 
         $entity = TaskMapper::toEntity($task);
         $this->repository->save($entity);
-        $task->setId($entity->getId());
         $this->invalidateUserCache($task->getUserId());
     }
 
@@ -48,14 +45,12 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         $entities = [];
         $userIds = [];
         foreach ($tasks as $task) {
-            if ($task->getId() !== null) {
-                /** @var TaskEntity|null $entity */
-                $entity = $this->repository->find($task->getId());
-                if ($entity !== null) {
-                    TaskMapper::updateEntity($task, $entity);
-                    $entities[] = $entity;
-                    $userIds[$task->getUserId()] = true;
-                }
+            /** @var TaskEntity|null $entity */
+            $entity = $this->repository->find($task->getId());
+            if ($entity !== null) {
+                TaskMapper::updateEntity($task, $entity);
+                $entities[] = $entity;
+                $userIds[$task->getUserId()] = true;
             }
         }
 
@@ -66,7 +61,7 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         }
     }
 
-    public function findByIdAndUserId(int $id, string $userId): ?Task
+    public function findByIdAndUserId(string $id, string $userId): ?Task
     {
         return $this->cache->get("task.{$id}.{$userId}", function (ItemInterface $item) use ($id, $userId): ?Task {
             $item->expiresAfter(self::TTL);
@@ -109,7 +104,7 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         }
     }
 
-    private function invalidateTask(int $id, string $userId): void
+    private function invalidateTask(string $id, string $userId): void
     {
         $this->cache->delete("task.{$id}.{$userId}");
         $this->invalidateUserCache($userId);
