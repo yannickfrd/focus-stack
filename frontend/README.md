@@ -29,30 +29,40 @@ src/
 │   ├── Domain/
 │   │   ├── Entities/           # Domain entities (pure TypeScript)
 │   │   │   ├── Task/           # Task, Priority
+│   │   │   ├── FocusTime/      # FocusTime
 │   │   │   └── User/           # User
 │   │   └── Ports/              # Port interfaces
-│   │       ├── Task/           # TaskPort (getAll, create, update, toggle, postpone, reorder, remove)
+│   │       ├── Auth/           # TokenRefreshPort
+│   │       ├── Task/           # TaskPort (getAll, create, update, reorder, remove)
+│   │       ├── FocusTime/      # FocusTimePort (create, list)
 │   │       └── User/           # UserLoginPort, UserLogoutPort, UserRegisterPort
 │   └── Application/
 │       ├── UseCases/           # Use cases (orchestrate domain via ports)
 │       │   ├── Auth/           # RefreshTokenUseCase
-│       │   ├── Task/           # GetTasks, CreateTask, UpdateTask, Reorder, Delete
+│       │   ├── Task/           # GetTasks, CreateTask, UpdateTask, ReorderTasks, DeleteTask
+│       │   ├── FocusTime/      # CreateFocusTime, ListFocusTimes
 │       │   └── User/           # LoginUser, LogoutUser, RegisterUser
 │       └── Requests/           # Request value objects
 ├── Infrastructure/
 │   ├── Http/                   # Fetch-based API adapters (extend AbstractHttpGateway)
 │   │   ├── Auth/               # TokenRefreshHttpGateway
-│   │   ├── Task/               # TaskHttpGateway (priority mapping FR ↔ EN)
+│   │   ├── Task/               # TaskHttpGateway
+│   │   ├── FocusTime/          # FocusTimeHttpGateway
 │   │   └── User/               # UserLoginHttpGateway, …
 │   ├── Storage/                # InMemoryTokenStore (JWT access token)
 │   └── Di/                     # Awilix container (PROXY injection mode)
 └── UserInterface/
-    ├── Components/             # React components
-    │   ├── Dashboard/          # DashboardClient
+    ├── Components/             # Reusable React components
+    │   ├── Common/             # ConfirmDialog
     │   ├── Layout/             # Sidebar
-    │   └── Task/               # TaskItem, TaskSidebar, TaskTable, TasksPageClient
+    │   └── Task/               # TaskItem, TaskSidebar, TaskTable, TimeEstimatePicker
+    ├── Screens/                # Page-level components (one per route)
+    │   ├── Dashboard/          # DashboardScreen
+    │   ├── Task/               # TasksScreen
+    │   └── Focus/              # FocusScreen
     └── Hooks/
-        ├── Task/               # useTasks (React Query)
+        ├── Task/               # useTasks, useTaskFilters
+        ├── Focus/              # useFocusTimer, useFocusTime, useFocusConfig
         └── User/               # useLoginUser, useLogoutUser, useRegisterUser
 ```
 
@@ -80,6 +90,7 @@ From `focus-stack/frontend/`:
 |-------|-------------|
 | `/` | Dashboard — today's tasks + analytics (protected) |
 | `/tasks` | Full task list — today, tomorrow, all (protected) |
+| `/focus` | Focus timer — select a task, choose duration, run a Pomodoro-style session (protected) |
 | `/login` | Login — `POST /login` → JWT stored in memory, refresh token in HttpOnly cookie |
 | `/register` | Register — `POST /register` → redirect to `/login` |
 

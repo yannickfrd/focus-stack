@@ -57,14 +57,13 @@ make stop      # stops all servers and the database container
 
 | Route | Description |
 |-------|-------------|
-| `/login` | Email + password login, JWT + refresh token |
-| `/register` | Account creation |
 | `/` | Dashboard — today's tasks, analytics, quick task sidebar |
 | `/tasks` | Full task list — today, tomorrow, all tasks |
+| `/focus` | Focus timer — Pomodoro-style session linked to a task |
+| `/login` | Email + password login, JWT + refresh token |
+| `/register` | Account creation |
 
-**Task management** — create, edit inline, toggle done, postpone to tomorrow, drag-and-drop reorder, delete. Sortable tables with search and status filter.
-
-**Auth** — JWT access token (1h) stored in memory, refresh token (30 days) in an HttpOnly cookie. Transparent renewal on each page load via `Providers`.
+→ Full feature details: [frontend/README.md](./frontend/README.md)
 
 ## Architecture
 

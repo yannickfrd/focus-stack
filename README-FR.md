@@ -57,14 +57,13 @@ make stop      # arrête tous les serveurs et le conteneur Docker
 
 | Route | Description |
 |-------|-------------|
-| `/login` | Connexion email + mot de passe, JWT + refresh token |
-| `/register` | Création de compte |
 | `/` | Tableau de bord — tâches du jour, analytique, sidebar de tâches rapide |
 | `/tasks` | Liste complète des tâches — aujourd'hui, demain, toutes |
+| `/focus` | Minuteur focus — session de type Pomodoro liée à une tâche |
+| `/login` | Connexion email + mot de passe, JWT + refresh token |
+| `/register` | Création de compte |
 
-**Gestion des tâches** — créer, éditer inline, cocher, reporter à demain, réordonner par drag-and-drop, supprimer. Tableaux triables avec recherche et filtre par statut.
-
-**Auth** — JWT access token (1h) stocké en mémoire, refresh token (30 jours) en cookie HttpOnly. Renouvellement transparent à chaque chargement de page via `Providers`.
+→ Détails complets : [frontend/README-FR.md](./frontend/README-FR.md)
 
 ## Architecture
 
