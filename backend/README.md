@@ -31,6 +31,7 @@ src/
 │   │   ├── Repository/      # Repository interfaces
 │   │   └── Service/         # Service interfaces (e.g. UUID generator)
 │   └── Application/
+│       ├── Request/         # Application request objects (pure, no Symfony)
 │       └── UseCase/         # Use cases (orchestrate domain via interfaces)
 ├── Infrastructure/
 │   ├── Service/             # Concrete service implementations
@@ -41,7 +42,7 @@ src/
 │       └── Mapper/          # Domain ↔ Doctrine object mappers
 └── UserInterface/
     ├── Controller/          # JSON controllers (JsonResponse, no route prefix)
-    ├── DTO/                 # Request DTOs
+    ├── DTO/                 # Request DTOs (extend Application Requests, add #[Assert\*])
     ├── Presenter/           # Response formatters
     └── EventSubscriber/     # Global exception handling
 ```
@@ -80,6 +81,8 @@ From `focus-stack/backend/`:
 | `PATCH` | `/tasks/{id}` | Update any task field (title, description, priority, estimatedTime, done, scheduledFor) |
 | `PUT` | `/tasks/reorder` | Persist task order (ordered id list) |
 | `DELETE` | `/tasks/{id}` | Delete a task |
+| `POST` | `/focus-times` | Record a completed focus session |
+| `GET` | `/focus-times` | List all focus sessions for the authenticated user |
 
 ### POST /register
 
@@ -180,7 +183,7 @@ Response `200 OK`:
     "priority": "high",
     "done": false,
     "scheduledFor": "today",
-    "estimatedTime": "2h",
+    "estimatedTime": "1h 30m",
     "createdAt": "2026-06-15T09:00:00+00:00"
   }
 ]
@@ -202,8 +205,8 @@ Request body:
   "title": "string",
   "description": "string|null",
   "priority": "high|middle|low",
-  "scheduledFor": "today|tomorrow",
-  "estimatedTime": "string|null"
+  "scheduledFor": "today|tomorrow|null",
+  "estimatedTime": "1h 30m|2h|45m|null"
 }
 ```
 
@@ -230,7 +233,10 @@ Error responses:
 
 ### PATCH /tasks/{id}
 
-Requires a valid JWT. All fields are optional — only provided (non-null) fields are updated.
+Requires a valid JWT. Replaces all task fields — send the full current state of the task.
+
+- `title`, `priority`, `done` — required
+- `description`, `estimatedTime`, `scheduledFor` — nullable, `null` clears the field
 
 Request body:
 ```json
@@ -238,9 +244,9 @@ Request body:
   "title": "string",
   "description": "string|null",
   "priority": "high|middle|low",
-  "estimatedTime": "string|null",
+  "estimatedTime": "1h 30m|2h|45m|null",
   "done": true,
-  "scheduledFor": "today|tomorrow"
+  "scheduledFor": "today|tomorrow|null"
 }
 ```
 
@@ -287,6 +293,60 @@ Error responses:
 |------|-----------|
 | `401` | Missing or invalid JWT token |
 | `404` | Task not found or does not belong to the authenticated user |
+
+### POST /focus-times
+
+Requires a valid JWT. Called when the focus timer reaches zero.
+
+Request body:
+```json
+{
+  "duration": 25,
+  "taskId": 123
+}
+```
+
+- `duration` — required, integer in minutes, 1–480
+- `taskId` — optional, omit or set to `null` if no task was selected
+
+Response `201 Created`:
+```json
+{
+  "id": 1,
+  "taskId": 123,
+  "duration": 25,
+  "completedAt": "2026-06-17T10:30:00+00:00"
+}
+```
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `400` | Validation failed (missing duration, duration out of range, negative taskId) |
+| `401` | Missing or invalid JWT token |
+
+### GET /focus-times
+
+Requires a valid JWT. Returns sessions ordered by most recent first.
+
+Response `200 OK`:
+```json
+[
+  {
+    "id": 1,
+    "taskId": 123,
+    "duration": 25,
+    "completedAt": "2026-06-17T10:30:00+00:00"
+  }
+]
+```
+
+Error responses:
+
+| Code | Condition |
+|------|-----------|
+| `401` | Missing or invalid JWT token |
 
 ## Environment
 
