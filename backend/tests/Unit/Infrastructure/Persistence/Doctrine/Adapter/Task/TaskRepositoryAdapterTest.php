@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Infrastructure\Persistence\Doctrine\Adapter\Task;
 use App\Core\Domain\Entity\Task\Priority;
 use App\Core\Domain\Entity\Task\ScheduledFor;
 use App\Core\Domain\Entity\Task\Task;
+use App\Core\Domain\Entity\Task\TaskList;
 use App\Infrastructure\Persistence\Doctrine\Adapter\Task\TaskRepositoryAdapter;
 use App\Infrastructure\Persistence\Doctrine\Entity\TaskEntity;
 use App\Infrastructure\Persistence\Doctrine\Repository\DoctrineTaskRepository;
@@ -59,24 +60,27 @@ final class TaskRepositoryAdapterTest extends TestCase
         $adapter->findByIdAndUserId(self::UUID1, 'user-1');
     }
 
-    public function testFindAllByUserIdReturnsEmptyArray(): void
+    public function testFindAllByUserIdReturnsEmptyTaskList(): void
     {
         $this->repository->method('findBy')->willReturn([]);
 
-        $this->assertSame([], $this->adapter->findAllByUserId('user-1'));
+        $result = $this->adapter->findAllByUserId('user-1');
+
+        $this->assertInstanceOf(TaskList::class, $result);
+        $this->assertSame([], $result->tasks());
     }
 
-    public function testFindAllByUserIdReturnsMappedTasks(): void
+    public function testFindAllByUserIdReturnsMappedTaskList(): void
     {
         $entity1 = $this->makeEntity(self::UUID1, 'Task A', 'user-1');
         $entity2 = $this->makeEntity(self::UUID2, 'Task B', 'user-1');
         $this->repository->method('findBy')->willReturn([$entity1, $entity2]);
 
-        $tasks = $this->adapter->findAllByUserId('user-1');
+        $taskList = $this->adapter->findAllByUserId('user-1');
 
-        $this->assertCount(2, $tasks);
-        $this->assertSame('Task A', $tasks[0]->getTitle());
-        $this->assertSame('Task B', $tasks[1]->getTitle());
+        $this->assertCount(2, $taskList->tasks());
+        $this->assertSame('Task A', $taskList->tasks()[0]->getTitle());
+        $this->assertSame('Task B', $taskList->tasks()[1]->getTitle());
     }
 
     public function testFindAllByUserIdHitsRepositoryOnlyOnce(): void
@@ -164,9 +168,9 @@ final class TaskRepositoryAdapterTest extends TestCase
         $repository->method('find')->with(self::UUID1)->willReturn($entity);
         $repository->expects($this->once())->method('saveAll');
 
-        $task = Task::create(self::UUID1, 'Task', 'user-1');
+        $taskList = new TaskList([Task::create(self::UUID1, 'Task', 'user-1')]);
 
-        (new TaskRepositoryAdapter($repository, $this->cache))->saveAll([$task]);
+        (new TaskRepositoryAdapter($repository, $this->cache))->saveAll($taskList);
     }
 
     public function testDeleteDelegatesToRepository(): void
@@ -211,11 +215,9 @@ final class TaskRepositoryAdapterTest extends TestCase
      * @template T of object
      * @param class-string<T> $class
      * @return T&\PHPUnit\Framework\MockObject\MockObject
-     * @noinspection PhpUnitInvalidMockingEntityInspection
      */
     private function createFinalMock(string $class): \PHPUnit\Framework\MockObject\MockObject
     {
-        /** @noinspection PhpUnitInvalidMockingEntityInspection */
         return $this->createMock($class);
     }
 
@@ -223,11 +225,9 @@ final class TaskRepositoryAdapterTest extends TestCase
      * @template T of object
      * @param class-string<T> $class
      * @return T&\PHPUnit\Framework\MockObject\Stub
-     * @noinspection PhpUnitInvalidMockingEntityInspection
      */
     private function createFinalStub(string $class): \PHPUnit\Framework\MockObject\Stub
     {
-        /** @noinspection PhpUnitInvalidMockingEntityInspection */
         return $this->createStub($class);
     }
 

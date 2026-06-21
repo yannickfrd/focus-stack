@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Doctrine\Adapter\Task;
 
 use App\Core\Domain\Entity\Task\Task;
+use App\Core\Domain\Entity\Task\TaskList;
 use App\Core\Domain\Repository\Task\TaskRepositoryInterface;
 use App\Infrastructure\Persistence\Doctrine\Entity\TaskEntity;
 use App\Infrastructure\Persistence\Doctrine\Mapper\Task\TaskMapper;
@@ -40,11 +41,11 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         $this->invalidateUserCache($task->getUserId());
     }
 
-    public function saveAll(array $tasks): void
+    public function saveAll(TaskList $taskList): void
     {
         $entities = [];
         $userIds = [];
-        foreach ($tasks as $task) {
+        foreach ($taskList->tasks() as $task) {
             /** @var TaskEntity|null $entity */
             $entity = $this->repository->find($task->getId());
             if ($entity !== null) {
@@ -73,15 +74,15 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         });
     }
 
-    public function findAllByUserId(string $userId): array
+    public function findAllByUserId(string $userId): TaskList
     {
-        return $this->cache->get("task.list.{$userId}", function (ItemInterface $item) use ($userId): array {
+        return $this->cache->get("task.list.{$userId}", function (ItemInterface $item) use ($userId): TaskList {
             $item->expiresAfter(self::TTL);
 
             /** @var TaskEntity[] $entities */
             $entities = $this->repository->findBy(['userId' => $userId], ['position' => 'ASC']);
 
-            return array_map(TaskMapper::toDomain(...), $entities);
+            return new TaskList(array_map(TaskMapper::toDomain(...), $entities));
         });
     }
 
