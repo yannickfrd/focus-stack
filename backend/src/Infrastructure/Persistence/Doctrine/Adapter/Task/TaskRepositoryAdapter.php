@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Doctrine\Adapter\Task;
 
 use App\Core\Domain\Entity\Task\Task;
+use App\Core\Domain\Entity\Task\TaskList;
 use App\Core\Domain\Repository\Task\TaskRepositoryInterface;
 use App\Infrastructure\Persistence\Doctrine\Entity\TaskEntity;
 use App\Infrastructure\Persistence\Doctrine\Mapper\Task\TaskMapper;
@@ -25,37 +26,32 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
 
     public function save(Task $task): void
     {
-        if ($task->getId() !== null) {
-            /** @var TaskEntity|null $entity */
-            $entity = $this->repository->find($task->getId());
-            if ($entity !== null) {
-                TaskMapper::updateEntity($task, $entity);
-                $this->repository->save($entity);
-                $this->invalidateTask($task->getId(), $task->getUserId());
+        /** @var TaskEntity|null $entity */
+        $entity = $this->repository->find($task->getId());
+        if ($entity !== null) {
+            TaskMapper::updateEntity($task, $entity);
+            $this->repository->save($entity);
+            $this->invalidateTask($task->getId(), $task->getUserId());
 
-                return;
-            }
+            return;
         }
 
         $entity = TaskMapper::toEntity($task);
         $this->repository->save($entity);
-        $task->setId($entity->getId());
         $this->invalidateUserCache($task->getUserId());
     }
 
-    public function saveAll(array $tasks): void
+    public function saveAll(TaskList $taskList): void
     {
         $entities = [];
         $userIds = [];
-        foreach ($tasks as $task) {
-            if ($task->getId() !== null) {
-                /** @var TaskEntity|null $entity */
-                $entity = $this->repository->find($task->getId());
-                if ($entity !== null) {
-                    TaskMapper::updateEntity($task, $entity);
-                    $entities[] = $entity;
-                    $userIds[$task->getUserId()] = true;
-                }
+        foreach ($taskList->tasks() as $task) {
+            /** @var TaskEntity|null $entity */
+            $entity = $this->repository->find($task->getId());
+            if ($entity !== null) {
+                TaskMapper::updateEntity($task, $entity);
+                $entities[] = $entity;
+                $userIds[$task->getUserId()] = true;
             }
         }
 
@@ -66,7 +62,7 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         }
     }
 
-    public function findByIdAndUserId(int $id, string $userId): ?Task
+    public function findByIdAndUserId(string $id, string $userId): ?Task
     {
         return $this->cache->get("task.{$id}.{$userId}", function (ItemInterface $item) use ($id, $userId): ?Task {
             $item->expiresAfter(self::TTL);
@@ -78,15 +74,15 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         });
     }
 
-    public function findAllByUserId(string $userId): array
+    public function findAllByUserId(string $userId): TaskList
     {
-        return $this->cache->get("task.list.{$userId}", function (ItemInterface $item) use ($userId): array {
+        return $this->cache->get("task.list.{$userId}", function (ItemInterface $item) use ($userId): TaskList {
             $item->expiresAfter(self::TTL);
 
             /** @var TaskEntity[] $entities */
             $entities = $this->repository->findBy(['userId' => $userId], ['position' => 'ASC']);
 
-            return array_map(TaskMapper::toDomain(...), $entities);
+            return new TaskList(array_map(TaskMapper::toDomain(...), $entities));
         });
     }
 
@@ -109,7 +105,7 @@ final readonly class TaskRepositoryAdapter implements TaskRepositoryInterface
         }
     }
 
-    private function invalidateTask(int $id, string $userId): void
+    private function invalidateTask(string $id, string $userId): void
     {
         $this->cache->delete("task.{$id}.{$userId}");
         $this->invalidateUserCache($userId);

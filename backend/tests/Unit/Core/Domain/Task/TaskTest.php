@@ -14,6 +14,7 @@ final class TaskTest extends TestCase
     public function testCreateSetsPropertiesCorrectly(): void
     {
         $task = Task::create(
+            id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
             title: 'My Task',
             userId: 'user-uuid',
             description: 'A description',
@@ -23,7 +24,7 @@ final class TaskTest extends TestCase
             position: 3,
         );
 
-        $this->assertNull($task->getId());
+        $this->assertSame('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', $task->getId());
         $this->assertSame('My Task', $task->getTitle());
         $this->assertSame('user-uuid', $task->getUserId());
         $this->assertSame('A description', $task->getDescription());
@@ -37,7 +38,7 @@ final class TaskTest extends TestCase
 
     public function testCreateUsesDefaults(): void
     {
-        $task = Task::create(title: 'Minimal', userId: 'user-1');
+        $task = Task::create(id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', title: 'Minimal', userId: 'user-1');
 
         $this->assertSame(Priority::Middle, $task->getPriority());
         $this->assertSame(ScheduledFor::Today, $task->getScheduledFor());
@@ -47,17 +48,9 @@ final class TaskTest extends TestCase
         $this->assertFalse($task->isDone());
     }
 
-    public function testSetIdAssignsId(): void
-    {
-        $task = Task::create('Task', 'user-1');
-        $task->setId(42);
-
-        $this->assertSame(42, $task->getId());
-    }
-
     public function testSetDoneTogglesBooleanState(): void
     {
-        $task = Task::create('Task', 'user-1');
+        $task = Task::create('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Task', 'user-1');
         $this->assertFalse($task->isDone());
 
         $task->setDone(true);
@@ -69,7 +62,7 @@ final class TaskTest extends TestCase
 
     public function testSetScheduledForChangesValue(): void
     {
-        $task = Task::create('Task', 'user-1');
+        $task = Task::create('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Task', 'user-1');
         $task->setScheduledFor(ScheduledFor::Tomorrow);
 
         $this->assertSame(ScheduledFor::Tomorrow, $task->getScheduledFor());
@@ -78,7 +71,7 @@ final class TaskTest extends TestCase
     public function testSetCreatedAtOverridesDefault(): void
     {
         $createdAt = new \DateTimeImmutable('2024-01-01');
-        $task = Task::create('Task', 'user-1')->setCreatedAt($createdAt);
+        $task = Task::create('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Task', 'user-1')->setCreatedAt($createdAt);
 
         $this->assertSame($createdAt, $task->getCreatedAt());
     }

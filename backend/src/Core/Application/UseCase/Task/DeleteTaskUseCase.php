@@ -13,7 +13,7 @@ final readonly class DeleteTaskUseCase
         private TaskRepositoryInterface $taskRepository,
     ) {}
 
-    public function execute(int $taskId, string $userId): void
+    public function execute(string $taskId, string $userId): void
     {
         $task = $this->taskRepository->findByIdAndUserId($taskId, $userId);
 

@@ -12,17 +12,18 @@ use PHPUnit\Framework\TestCase;
 
 final class DeleteTaskUseCaseTest extends TestCase
 {
+    private const string TASK_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
     public function testExecuteDeletesTask(): void
     {
-        $task = Task::create('Task', 'user-1');
-        $task->setId(1);
+        $task = Task::create(self::TASK_UUID, 'Task', 'user-1');
 
         $repository = $this->createMock(TaskRepositoryInterface::class);
-        $repository->method('findByIdAndUserId')->with(1, 'user-1')->willReturn($task);
+        $repository->method('findByIdAndUserId')->with(self::TASK_UUID, 'user-1')->willReturn($task);
         $repository->expects($this->once())->method('delete')->with($task);
 
         $useCase = new DeleteTaskUseCase($repository);
-        $useCase->execute(1, 'user-1');
+        $useCase->execute(self::TASK_UUID, 'user-1');
     }
 
     public function testExecuteThrowsWhenTaskNotFound(): void
@@ -34,6 +35,6 @@ final class DeleteTaskUseCaseTest extends TestCase
         $this->expectExceptionMessage('Task not found.');
 
         $useCase = new DeleteTaskUseCase($repository);
-        $useCase->execute(99, 'user-1');
+        $useCase->execute('00000000-0000-0000-0000-000000000099', 'user-1');
     }
 }

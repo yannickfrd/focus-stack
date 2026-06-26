@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\UserInterface\Presenter\Task;
 
 use App\Core\Domain\Entity\Task\Task;
+use App\Core\Domain\Entity\Task\TaskList;
 
 final class TaskPresenter
 {
@@ -22,9 +23,8 @@ final class TaskPresenter
         ];
     }
 
-    /** @param Task[] $tasks */
-    public function presentAll(array $tasks): array
+    public function presentAll(TaskList $taskList): array
     {
-        return array_map($this->present(...), $tasks);
+        return array_map($this->present(...), $taskList->tasks());
     }
 }

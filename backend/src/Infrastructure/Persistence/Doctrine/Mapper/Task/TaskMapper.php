@@ -12,6 +12,7 @@ final class TaskMapper
     public static function toEntity(Task $task): TaskEntity
     {
         $entity = new TaskEntity();
+        $entity->setId($task->getId());
         self::updateEntity($task, $entity);
 
         return $entity;
@@ -33,6 +34,7 @@ final class TaskMapper
     public static function toDomain(TaskEntity $entity): Task
     {
         return Task::create(
+            id: $entity->getId(),
             title: $entity->getTitle(),
             userId: $entity->getUserId(),
             description: $entity->getDescription(),
@@ -41,7 +43,6 @@ final class TaskMapper
             estimatedTime: $entity->getEstimatedTime(),
             position: $entity->getPosition(),
         )
-        ->setId($entity->getId())
         ->setDone($entity->isDone())
         ->setCreatedAt($entity->getCreatedAt());
     }

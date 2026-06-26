@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Plus, ArrowUpDown } from 'lucide-react';
 import { TaskItem, type Task, type Priority } from './TaskItem';
 import { TimeEstimatePicker } from './TimeEstimatePicker';
@@ -20,6 +21,7 @@ interface Props {
 const PRIORITY_ORDER: Record<Priority, number> = { haute: 0, moyenne: 1, basse: 2 };
 
 export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete, onUpdate, onReorder, onPostpone }: Props) {
+  const router = useRouter();
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newPriority, setNewPriority] = useState<Priority>('moyenne');
@@ -57,6 +59,11 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
     }
 
     onToggle(id);
+  };
+
+  const handleFocus = (id: number) => {
+    onClose();
+    router.push(`/focus?taskId=${id}`);
   };
 
   const handlePostpone = (id: number) => {
@@ -97,6 +104,7 @@ export function TaskSidebar({ isOpen, onClose, tasks, onToggle, onAdd, onDelete,
       onUpdate={onUpdate}
       onReorder={onReorder}
       onPostpone={handlePostpone}
+      onFocus={handleFocus}
     />
   );
 

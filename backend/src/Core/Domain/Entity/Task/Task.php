@@ -6,7 +6,7 @@ namespace App\Core\Domain\Entity\Task;
 
 final class Task
 {
-    private ?int $id = null;
+    private string $id;
     private string $title;
     private ?string $description;
     private Priority $priority;
@@ -23,6 +23,7 @@ final class Task
     }
 
     public static function create(
+        string $id,
         string $title,
         string $userId,
         ?string $description = null,
@@ -32,6 +33,7 @@ final class Task
         int $position = 0,
     ): self {
         $task = new self();
+        $task->id = $id;
         $task
             ->setTitle($title)
             ->setUserId($userId)
@@ -46,16 +48,9 @@ final class Task
         return $task;
     }
 
-    public function getId(): ?int
+    public function getId(): string
     {
         return $this->id;
-    }
-
-    public function setId(int $id): self
-    {
-        $this->id = $id;
-
-        return $this;
     }
 
     public function getTitle(): string

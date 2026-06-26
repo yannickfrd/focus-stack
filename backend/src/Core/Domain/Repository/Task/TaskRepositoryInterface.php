@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Core\Domain\Repository\Task;
 
 use App\Core\Domain\Entity\Task\Task;
+use App\Core\Domain\Entity\Task\TaskList;
 
 interface TaskRepositoryInterface
 {
     public function save(Task $task): void;
 
-    /** @param Task[] $tasks */
-    public function saveAll(array $tasks): void;
+    public function saveAll(TaskList $taskList): void;
 
-    public function findByIdAndUserId(int $id, string $userId): ?Task;
+    public function findByIdAndUserId(string $id, string $userId): ?Task;
 
-    /** @return Task[] */
-    public function findAllByUserId(string $userId): array;
+    public function findAllByUserId(string $userId): TaskList;
 
     public function countByUserId(string $userId): int;
 
