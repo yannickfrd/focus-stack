@@ -1,132 +1,31 @@
 'use client';
 
 import { Sidebar } from '@ui/Components/Layout/Sidebar';
-import { useFocusTime } from '@ui/Hooks/Focus/useFocusTime';
-import { useTasks } from '@ui/Hooks/Task/useTasks';
-import type { FocusTime } from '@/Core/Domain/Entities/FocusTime/FocusTime';
+import { StatHint } from '@ui/Components/Stats/StatHint';
+import { useStats } from '@ui/Hooks/Stats/useStats';
+import { formatDuration } from '@ui/Hooks/Stats/statsUtils';
 
-function formatDuration(minutes: number): string {
-  if (minutes === 0) return '0min';
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}min`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}min`;
-}
-
-function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear()
-    && a.getMonth() === b.getMonth()
-    && a.getDate() === b.getDate();
-}
-
-function dayKey(d: Date) {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
-function computeCurrentStreak(focusTimes: FocusTime[]): number {
-  if (focusTimes.length === 0) return 0;
-  const keys = new Set(focusTimes.map((ft) => dayKey(ft.completedAt)));
-  let streak = 0;
-  const check = new Date();
-  check.setHours(0, 0, 0, 0);
-  while (keys.has(dayKey(check))) {
-    streak++;
-    check.setDate(check.getDate() - 1);
-  }
-  return streak;
-}
-
-function computeBestStreak(focusTimes: FocusTime[]): number {
-  if (focusTimes.length === 0) return 0;
-  const dayTimestamps = Array.from(
-    new Set(
-      focusTimes.map((ft) => {
-        const d = new Date(ft.completedAt);
-        d.setHours(0, 0, 0, 0);
-        return d.getTime();
-      })
-    )
-  ).sort((a, b) => a - b);
-
-  let best = 1;
-  let current = 1;
-  for (let i = 1; i < dayTimestamps.length; i++) {
-    const diffDays = (dayTimestamps[i] - dayTimestamps[i - 1]) / 86400000;
-    if (diffDays === 1) {
-      current++;
-      if (current > best) best = current;
-    } else {
-      current = 1;
-    }
-  }
-  return best;
-}
-
-function StatHint({ text }: { text: string }) {
-  return (
-    <span className="group relative ml-1 inline-flex cursor-default">
-      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-current text-[9px] opacity-40 group-hover:opacity-80">?</span>
-      <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 w-48 -translate-x-1/2 rounded-lg border border-border bg-elevated px-2.5 py-1.5 text-[11px] leading-snug text-muted-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-        {text}
-      </span>
-    </span>
-  );
-}
+const priorityColors = { haute: 'bg-red-400', moyenne: 'bg-yellow-400', basse: 'bg-blue-400' };
+const priorityLabels = { haute: 'Haute', moyenne: 'Moyenne', basse: 'Basse' };
 
 export function AnalyticsScreen() {
-  const { focusTimes } = useFocusTime();
-  const { tasks } = useTasks();
+  const {
+    focusTimes,
+    tasks,
+    totalFocusMinutes,
+    avgSessionMinutes,
+    currentStreak,
+    bestStreak,
+    totalDone,
+    globalCompletionRate,
+    totalEstimatedMinutes,
+    last7,
+    last8Weeks,
+    priorityStats,
+  } = useStats();
 
-  const now = new Date();
-  const totalFocusMinutes = focusTimes.reduce((s, ft) => s + ft.duration, 0);
-  const avgSessionMinutes = focusTimes.length > 0 ? Math.round(totalFocusMinutes / focusTimes.length) : 0;
-  const currentStreak = computeCurrentStreak(focusTimes);
-  const bestStreak = computeBestStreak(focusTimes);
-  const totalDone = tasks.filter((t) => t.done).length;
-  const completionRate = tasks.length > 0 ? Math.round((totalDone / tasks.length) * 100) : 0;
-  const totalEstimated = tasks
-    .filter((t) => t.estimatedTime)
-    .reduce((s, t) => s + parseInt(t.estimatedTime ?? '0', 10), 0);
-
-  // 7 derniers jours (glissant)
-  const last7 = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(now);
-    d.setDate(d.getDate() - (6 - i));
-    d.setHours(0, 0, 0, 0);
-    const minutes = focusTimes
-      .filter((ft) => isSameDay(ft.completedAt, d))
-      .reduce((s, ft) => s + ft.duration, 0);
-    const label = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
-    return { label, minutes };
-  });
   const last7Max = Math.max(...last7.map((d) => d.minutes), 1);
-
-  // 8 dernières semaines
-  const last8Weeks = Array.from({ length: 8 }, (_, i) => {
-    const weekEnd = new Date(now);
-    weekEnd.setDate(weekEnd.getDate() - i * 7);
-    weekEnd.setHours(23, 59, 59, 999);
-    const weekStart = new Date(weekEnd);
-    weekStart.setDate(weekStart.getDate() - 6);
-    weekStart.setHours(0, 0, 0, 0);
-    const minutes = focusTimes
-      .filter((ft) => ft.completedAt >= weekStart && ft.completedAt <= weekEnd)
-      .reduce((s, ft) => s + ft.duration, 0);
-    const label = weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-    return { label, minutes };
-  }).reverse();
   const last8WeeksMax = Math.max(...last8Weeks.map((w) => w.minutes), 1);
-
-  // Répartition des tâches par priorité
-  const priorities = ['haute', 'moyenne', 'basse'] as const;
-  const priorityColors = { haute: 'bg-red-400', moyenne: 'bg-yellow-400', basse: 'bg-blue-400' };
-  const priorityLabels = { haute: 'Haute', moyenne: 'Moyenne', basse: 'Basse' };
-  const priorityStats = priorities.map((p) => {
-    const all = tasks.filter((t) => t.priority === p);
-    const done = all.filter((t) => t.done).length;
-    return { priority: p, total: all.length, done };
-  });
   const maxPriorityTotal = Math.max(...priorityStats.map((p) => p.total), 1);
 
   return (
@@ -141,7 +40,6 @@ export function AnalyticsScreen() {
 
         <div className="space-y-5 px-8 pb-8">
 
-          {/* KPIs */}
           <div className="grid grid-cols-3 gap-4">
             <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-5">
               <p className="text-xs uppercase tracking-wide text-subtle-foreground">
@@ -161,7 +59,7 @@ export function AnalyticsScreen() {
               <p className="text-xs uppercase tracking-wide text-subtle-foreground">
                 Complétion globale<StatHint text="Pourcentage de tâches marquées comme terminées sur l'ensemble de tes tâches." />
               </p>
-              <p className="mt-1 text-2xl font-bold text-teal-400">{completionRate}%</p>
+              <p className="mt-1 text-2xl font-bold text-teal-400">{globalCompletionRate}%</p>
               <p className="mt-1 text-xs text-subtle-foreground">{totalDone} / {tasks.length} tâche{tasks.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
@@ -178,7 +76,7 @@ export function AnalyticsScreen() {
               <p className="text-xs uppercase tracking-wide text-subtle-foreground">
                 Temps estimé<StatHint text="Somme des durées estimées de toutes tes tâches (champ 'temps estimé')." />
               </p>
-              <p className="mt-1 text-2xl font-bold text-blue-400">{formatDuration(totalEstimated)}</p>
+              <p className="mt-1 text-2xl font-bold text-blue-400">{formatDuration(totalEstimatedMinutes)}</p>
               <p className="mt-1 text-xs text-subtle-foreground">planifié sur tes tâches</p>
             </div>
             <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-5">
@@ -186,19 +84,18 @@ export function AnalyticsScreen() {
                 Écart estimé / réel<StatHint text="Différence entre le temps estimé de tes tâches et ton temps de focus réel." />
               </p>
               <p className="mt-1 text-2xl font-bold text-green-400">
-                {totalEstimated === 0 && totalFocusMinutes === 0
+                {totalEstimatedMinutes === 0 && totalFocusMinutes === 0
                   ? '—'
-                  : totalFocusMinutes >= totalEstimated
-                  ? `+${formatDuration(totalFocusMinutes - totalEstimated)}`
-                  : `-${formatDuration(totalEstimated - totalFocusMinutes)}`}
+                  : totalFocusMinutes >= totalEstimatedMinutes
+                  ? `+${formatDuration(totalFocusMinutes - totalEstimatedMinutes)}`
+                  : `-${formatDuration(totalEstimatedMinutes - totalFocusMinutes)}`}
               </p>
               <p className="mt-1 text-xs text-subtle-foreground">
-                {totalFocusMinutes >= totalEstimated ? 'au-delà du plan' : 'en-dessous du plan'}
+                {totalFocusMinutes >= totalEstimatedMinutes ? 'au-delà du plan' : 'en-dessous du plan'}
               </p>
             </div>
           </div>
 
-          {/* Charts */}
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2 rounded-xl border border-border bg-card p-5">
               <h2 className="mb-4 text-sm font-semibold text-foreground">Focus — 7 derniers jours</h2>
@@ -246,7 +143,6 @@ export function AnalyticsScreen() {
             </div>
           </div>
 
-          {/* Répartition par priorité */}
           <div className="rounded-xl border border-border bg-card p-5">
             <h2 className="mb-4 text-sm font-semibold text-foreground">Tâches par priorité</h2>
             {tasks.length === 0 ? (
