@@ -26,4 +26,18 @@ final class DoctrineRoutineRepository extends ServiceEntityRepository
         $this->getEntityManager()->remove($entity);
         $this->getEntityManager()->flush();
     }
+
+    /** @return string[] */
+    public function findColorsByUserId(string $userId): array
+    {
+        return array_column(
+            $this->createQueryBuilder('r')
+                ->select('r.color')
+                ->where('r.userId = :userId')
+                ->setParameter('userId', $userId)
+                ->getQuery()
+                ->getArrayResult(),
+            'color',
+        );
+    }
 }

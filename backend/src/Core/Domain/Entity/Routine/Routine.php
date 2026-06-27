@@ -8,7 +8,7 @@ final class Routine
 {
     private string $id;
     private string $title;
-    private ?string $color;
+    private string $color;
     private string $userId;
     private \DateTimeImmutable $createdAt;
 
@@ -21,7 +21,7 @@ final class Routine
         string $id,
         string $title,
         string $userId,
-        ?string $color = null,
+        string $color,
     ): self {
         $routine = new self();
         $routine->id = $id;
@@ -32,7 +32,7 @@ final class Routine
         return $routine;
     }
 
-    public static function update(self $routine, string $title, ?string $color): self
+    public static function update(self $routine, string $title, string $color): self
     {
         $updated = clone $routine;
         $updated->title = $title;
@@ -58,12 +58,12 @@ final class Routine
         return $this;
     }
 
-    public function getColor(): ?string
+    public function getColor(): string
     {
         return $this->color;
     }
 
-    public function setColor(?string $color): self
+    public function setColor(string $color): self
     {
         $this->color = $color;
 

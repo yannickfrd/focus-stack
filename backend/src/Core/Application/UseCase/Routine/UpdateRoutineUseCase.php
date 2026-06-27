@@ -23,7 +23,7 @@ final readonly class UpdateRoutineUseCase
             throw new NotFoundException('Routine not found.');
         }
 
-        $updated = Routine::update($routine, $request->title, $request->color);
+        $updated = Routine::update($routine, $request->title, $request->color ?? $routine->getColor());
 
         $this->routineRepository->save($updated);
 

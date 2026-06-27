@@ -76,16 +76,7 @@ final readonly class RoutineRepositoryAdapter implements RoutineRepositoryInterf
         return $this->cache->get("routine.colors.{$userId}", function (ItemInterface $item) use ($userId): array {
             $item->expiresAfter(self::TTL);
 
-            return array_column(
-                $this->repository->createQueryBuilder('r')
-                    ->select('r.color')
-                    ->where('r.userId = :userId')
-                    ->andWhere('r.color IS NOT NULL')
-                    ->setParameter('userId', $userId)
-                    ->getQuery()
-                    ->getArrayResult(),
-                'color',
-            );
+            return $this->repository->findColorsByUserId($userId);
         });
     }
 }

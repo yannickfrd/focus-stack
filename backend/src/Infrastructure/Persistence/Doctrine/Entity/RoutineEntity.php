@@ -17,8 +17,8 @@ final class RoutineEntity
     #[ORM\Column(type: 'string', length: 255)]
     private string $title;
 
-    #[ORM\Column(type: 'string', length: 7, nullable: true)]
-    private ?string $color;
+    #[ORM\Column(type: 'string', length: 7)]
+    private string $color;
 
     #[ORM\Column(type: 'string', length: 36)]
     private string $userId;
@@ -46,12 +46,12 @@ final class RoutineEntity
         $this->title = $title;
     }
 
-    public function getColor(): ?string
+    public function getColor(): string
     {
         return $this->color;
     }
 
-    public function setColor(?string $color): void
+    public function setColor(string $color): void
     {
         $this->color = $color;
     }
