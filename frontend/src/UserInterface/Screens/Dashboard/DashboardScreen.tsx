@@ -2,20 +2,14 @@
 
 import { useState } from 'react';
 import { CheckSquare, Search } from 'lucide-react';
+import { RoutineItem } from '@ui/Components/Routine/RoutineItem';
 import { Sidebar } from '@ui/Components/Layout/Sidebar';
 import { TaskSidebar } from '@ui/Components/Task/TaskSidebar';
 import { TaskTable } from '@ui/Components/Task/TaskTable';
 import { useTasks } from '@ui/Hooks/Task/useTasks';
 import { useTaskFilters, STATUS_TABS } from '@ui/Hooks/Task/useTaskFilters';
 import { useFocusTime } from '@ui/Hooks/Focus/useFocusTime';
-
-const dailyItems = [
-  { id: 1, title: 'Routine matinale', dot: 'bg-green-500' },
-  { id: 2, title: 'Session de travail profond', dot: 'bg-accent' },
-  { id: 3, title: 'Revue des emails', dot: 'bg-yellow-500' },
-  { id: 4, title: 'Exercice', dot: 'bg-blue-500' },
-  { id: 5, title: 'Lecture', dot: 'bg-orange-500' },
-];
+import { useRoutines } from '@ui/Hooks/Routine/useRoutines';
 
 const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
@@ -49,6 +43,7 @@ export function DashboardScreen() {
 
   const { tasks, isLoading, createTask, updateTask, toggleTask, postponeTask, reorderTask, deleteTask } = useTasks();
   const { focusTimes } = useFocusTime();
+  const { routines, editRoutine, removeRoutine } = useRoutines();
 
   const todayTasks = tasks.filter((t) => !t.scheduledFor || t.scheduledFor === 'today');
   const todayDone = todayTasks.filter((t) => t.done).length;
@@ -140,18 +135,22 @@ export function DashboardScreen() {
             </div>
 
             <div className="rounded-xl border border-border bg-card p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-foreground">Liste quotidienne</h2>
-                <span className="text-xs text-subtle-foreground">Groupe 1</span>
-              </div>
-              <ul className="space-y-3">
-                {dailyItems.map((item) => (
-                  <li key={item.id} className="flex items-center gap-3">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${item.dot}`} />
-                    <span className="text-sm text-foreground/70">{item.title}</span>
-                  </li>
-                ))}
-              </ul>
+              <h2 className="mb-3 text-sm font-semibold text-foreground">Liste quotidienne</h2>
+              {routines.length === 0 ? (
+                <p className="py-4 text-center text-xs text-subtle-foreground">Aucune routine configurée</p>
+              ) : (
+                <ul className="space-y-2">
+                  {routines.slice(0, 5).map((routine) => (
+                    <RoutineItem
+                      key={routine.id}
+                      routine={routine}
+                      onEdit={editRoutine}
+                      onDelete={removeRoutine}
+                      onCreateTask={(t) => createTask(t, '', 'moyenne', '', 'today')}
+                    />
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
 

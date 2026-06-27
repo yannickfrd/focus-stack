@@ -5,6 +5,7 @@ import { UserLogoutHttpGateway } from '@infrastructure/Http/User/UserLogoutHttpG
 import { TokenRefreshHttpGateway } from '@infrastructure/Http/Auth/TokenRefreshHttpGateway';
 import { TaskHttpGateway } from '@infrastructure/Http/Task/TaskHttpGateway';
 import { FocusTimeHttpGateway } from '@infrastructure/Http/FocusTime/FocusTimeHttpGateway';
+import { RoutineHttpGateway } from '@infrastructure/Http/Routine/RoutineHttpGateway';
 import { RegisterUserUseCase } from '@application/UseCases/User/RegisterUserUseCase';
 import { LoginUserUseCase } from '@application/UseCases/User/LoginUserUseCase';
 import { LogoutUserUseCase } from '@application/UseCases/User/LogoutUserUseCase';
@@ -16,6 +17,10 @@ import { ReorderTasksUseCase } from '@application/UseCases/Task/ReorderTasksUseC
 import { DeleteTaskUseCase } from '@application/UseCases/Task/DeleteTaskUseCase';
 import { CreateFocusTimeUseCase } from '@application/UseCases/FocusTime/CreateFocusTimeUseCase';
 import { ListFocusTimesUseCase } from '@application/UseCases/FocusTime/ListFocusTimesUseCase';
+import { GetRoutinesUseCase } from '@application/UseCases/Routine/GetRoutinesUseCase';
+import { CreateRoutineUseCase } from '@application/UseCases/Routine/CreateRoutineUseCase';
+import { UpdateRoutineUseCase } from '@application/UseCases/Routine/UpdateRoutineUseCase';
+import { DeleteRoutineUseCase } from '@application/UseCases/Routine/DeleteRoutineUseCase';
 
 const container = createContainer({ injectionMode: InjectionMode.PROXY });
 
@@ -37,6 +42,11 @@ container.register({
   deleteTaskUseCase:       asClass(DeleteTaskUseCase).singleton(),
   createFocusTimeUseCase:  asClass(CreateFocusTimeUseCase).singleton(),
   listFocusTimesUseCase:   asClass(ListFocusTimesUseCase).singleton(),
+  routinePort:             asClass(RoutineHttpGateway).singleton(),
+  getRoutinesUseCase:      asClass(GetRoutinesUseCase).singleton(),
+  createRoutineUseCase:    asClass(CreateRoutineUseCase).singleton(),
+  updateRoutineUseCase:    asClass(UpdateRoutineUseCase).singleton(),
+  deleteRoutineUseCase:    asClass(DeleteRoutineUseCase).singleton(),
 });
 
 export { container };

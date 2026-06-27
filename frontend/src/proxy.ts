@@ -10,5 +10,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/logout', '/register', '/tasks', '/tasks/:path+', '/token/:path+', '/focus-times'],
+  matcher: ['/login', '/logout', '/register', '/tasks', '/tasks/:path+', '/token/:path+', '/focus-times', '/routines', '/routines/:path+'],
 };
