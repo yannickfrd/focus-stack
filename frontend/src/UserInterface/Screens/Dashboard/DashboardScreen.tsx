@@ -4,69 +4,35 @@ import { useState } from 'react';
 import { CheckSquare, Search } from 'lucide-react';
 import { RoutineItem } from '@ui/Components/Routine/RoutineItem';
 import { Sidebar } from '@ui/Components/Layout/Sidebar';
+import { StatHint } from '@ui/Components/Stats/StatHint';
 import { TaskSidebar } from '@ui/Components/Task/TaskSidebar';
 import { TaskTable } from '@ui/Components/Task/TaskTable';
 import { useTasks } from '@ui/Hooks/Task/useTasks';
 import { useTaskFilters, STATUS_TABS } from '@ui/Hooks/Task/useTaskFilters';
-import { useFocusTime } from '@ui/Hooks/Focus/useFocusTime';
 import { useRoutines } from '@ui/Hooks/Routine/useRoutines';
+import { useStats } from '@ui/Hooks/Stats/useStats';
+import { formatDuration } from '@ui/Hooks/Stats/statsUtils';
 
 const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-
-function formatDuration(minutes: number): string {
-  if (minutes === 0) return '0min';
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}min`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}min`;
-}
-
-function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear()
-    && a.getMonth() === b.getMonth()
-    && a.getDate() === b.getDate();
-}
-
-function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = (day === 0 ? -6 : 1 - day);
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
 
 export function DashboardScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { search, setSearch, statusFilter, setStatusFilter, applyFilters } = useTaskFilters();
 
-  const { tasks, isLoading, createTask, updateTask, toggleTask, postponeTask, reorderTask, deleteTask } = useTasks();
-  const { focusTimes } = useFocusTime();
-  const { routines, editRoutine, removeRoutine } = useRoutines();
+  const { isLoading, createTask, updateTask, toggleTask, postponeTask, reorderTask, deleteTask } = useTasks();
+  const { editRoutine, removeRoutine } = useRoutines();
+  const {
+    focusTimes, tasks, routines,
+    todayMinutes, todaySessionCount,
+    weekMinutes, weekSessionCount,
+    weekBars,
+    currentStreak,
+    avgSessionMinutes,
+    todayTasks, todayDone, todayTotal, pending,
+    totalDone, globalCompletionRate,
+    totalEstimatedMinutes, totalFocusMinutes,
+  } = useStats();
 
-  const todayTasks = tasks.filter((t) => !t.scheduledFor || t.scheduledFor === 'today');
-  const todayDone = todayTasks.filter((t) => t.done).length;
-  const todayTotal = todayTasks.length;
-  const pending = todayTasks.filter((t) => !t.done).length;
-
-  const now = new Date();
-  const weekStart = getWeekStart(now);
-
-  const todayMinutes = focusTimes
-    .filter((ft) => isSameDay(ft.completedAt, now))
-    .reduce((sum, ft) => sum + ft.duration, 0);
-
-  const weekSessions = focusTimes.filter((ft) => ft.completedAt >= weekStart);
-  const weekMinutes = weekSessions.reduce((sum, ft) => sum + ft.duration, 0);
-
-  const weekBars = Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(weekStart);
-    day.setDate(day.getDate() + i);
-    return focusTimes
-      .filter((ft) => isSameDay(ft.completedAt, day))
-      .reduce((sum, ft) => sum + ft.duration, 0);
-  });
   const weekBarsMax = Math.max(...weekBars, 1);
 
   return (
@@ -78,7 +44,7 @@ export function DashboardScreen() {
           <div>
             <h1 className="text-xl font-semibold text-foreground">Tableau de bord</h1>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Bon retour, <span className="font-medium text-foreground">Alexandra</span> 👋
+              Bon retour 👋
             </p>
           </div>
 
@@ -99,22 +65,46 @@ export function DashboardScreen() {
         <div className="space-y-5 px-8 pb-8">
           <div className="grid grid-cols-3 gap-4">
             <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-5">
-              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Focus aujourd'hui</p>
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Focus aujourd'hui<StatHint text="Durée totale des sessions de focus complétées aujourd'hui." /></p>
               <p className="mt-1 text-2xl font-bold text-orange-400">{formatDuration(todayMinutes)}</p>
               <p className="mt-1 text-xs text-subtle-foreground">
-                {focusTimes.filter((ft) => isSameDay(ft.completedAt, now)).length} session{focusTimes.filter((ft) => isSameDay(ft.completedAt, now)).length > 1 ? 's' : ''}
+                {todaySessionCount} session{todaySessionCount > 1 ? 's' : ''}
               </p>
             </div>
             <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-5">
-              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Cette semaine</p>
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Cette semaine<StatHint text="Durée totale de focus depuis le lundi de cette semaine." /></p>
               <p className="mt-1 text-2xl font-bold text-blue-400">{formatDuration(weekMinutes)}</p>
-              <p className="mt-1 text-xs text-subtle-foreground">{weekSessions.length} session{weekSessions.length > 1 ? 's' : ''}</p>
+              <p className="mt-1 text-xs text-subtle-foreground">{weekSessionCount} session{weekSessionCount > 1 ? 's' : ''}</p>
             </div>
             <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-5">
-              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Tâches accomplies</p>
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Tâches accomplies<StatHint text="Tâches terminées aujourd'hui sur le total des tâches planifiées pour aujourd'hui." /></p>
               <p className="mt-1 text-2xl font-bold text-green-400">{todayDone} / {todayTotal}</p>
               <p className="mt-1 text-xs text-subtle-foreground">
                 {pending > 0 ? `${pending} restante${pending > 1 ? 's' : ''} aujourd'hui` : "Toutes les tâches sont faites !"}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-5">
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Streak focus<StatHint text="Nombre de jours consécutifs avec au moins une session de focus complétée." /></p>
+              <p className="mt-1 text-2xl font-bold text-violet-400">{currentStreak} jour{currentStreak !== 1 ? 's' : ''}</p>
+              <p className="mt-1 text-xs text-subtle-foreground">
+                {currentStreak === 0 ? "Aucune session aujourd'hui" : 'Jours consécutifs'}
+              </p>
+            </div>
+            <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5">
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Moy. par session<StatHint text="Durée moyenne de toutes tes sessions de focus, toutes dates confondues." /></p>
+              <p className="mt-1 text-2xl font-bold text-yellow-400">{formatDuration(avgSessionMinutes)}</p>
+              <p className="mt-1 text-xs text-subtle-foreground">
+                {focusTimes.length} session{focusTimes.length !== 1 ? 's' : ''} au total
+              </p>
+            </div>
+            <div className="rounded-xl border border-teal-500/20 bg-teal-500/10 p-5">
+              <p className="text-xs uppercase tracking-wide text-subtle-foreground">Complétion globale<StatHint text="Pourcentage de tâches marquées comme terminées sur l'ensemble de tes tâches." /></p>
+              <p className="mt-1 text-2xl font-bold text-teal-400">{globalCompletionRate}%</p>
+              <p className="mt-1 text-xs text-subtle-foreground">
+                {totalDone} / {tasks.length} tâche{tasks.length !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
@@ -135,7 +125,12 @@ export function DashboardScreen() {
             </div>
 
             <div className="rounded-xl border border-border bg-card p-5">
-              <h2 className="mb-3 text-sm font-semibold text-foreground">Liste quotidienne</h2>
+              <div className="mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-foreground">Liste quotidienne</h2>
+                {routines.length > 0 && (
+                  <span className="rounded-full bg-elevated px-2 py-0.5 text-xs text-muted-foreground">{routines.length}</span>
+                )}
+              </div>
               {routines.length === 0 ? (
                 <p className="py-4 text-center text-xs text-subtle-foreground">Aucune routine configurée</p>
               ) : (
@@ -203,12 +198,20 @@ export function DashboardScreen() {
               <h2 className="text-sm font-semibold text-foreground">Analytique</h2>
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg bg-elevated p-3">
-                  <p className="text-xl font-bold text-foreground">{weekSessions.length}</p>
+                  <p className="text-xl font-bold text-foreground">{weekSessionCount}</p>
                   <p className="text-xs text-muted-foreground">Sessions cette semaine</p>
                 </div>
                 <div className="rounded-lg bg-elevated p-3">
                   <p className="text-lg font-bold text-foreground">{formatDuration(weekMinutes)}</p>
                   <p className="text-xs text-muted-foreground">Temps de focus</p>
+                </div>
+                <div className="rounded-lg bg-elevated p-3">
+                  <p className="text-lg font-bold text-foreground">{formatDuration(totalEstimatedMinutes)}</p>
+                  <p className="text-xs text-muted-foreground">Temps estimé (tâches)</p>
+                </div>
+                <div className="rounded-lg bg-elevated p-3">
+                  <p className="text-lg font-bold text-foreground">{formatDuration(totalFocusMinutes)}</p>
+                  <p className="text-xs text-muted-foreground">Focus réel (total)</p>
                 </div>
               </div>
               <div className="flex flex-1 items-end gap-1">
