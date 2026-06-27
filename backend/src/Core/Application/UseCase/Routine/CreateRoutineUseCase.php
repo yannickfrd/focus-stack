@@ -12,16 +12,16 @@ use App\Core\Domain\Service\UuidGeneratorInterface;
 final readonly class CreateRoutineUseCase
 {
     private const array COLOR_PALETTE = [
-        '#22c55e',
-        '#6366f1',
-        '#eab308',
-        '#3b82f6',
-        '#f97316',
-        '#ec4899',
-        '#8b5cf6',
-        '#14b8a6',
-        '#ef4444',
-        '#06b6d4',
+        '#22c55e', '#86efac',
+        '#6366f1', '#a5b4fc',
+        '#eab308', '#fde047',
+        '#3b82f6', '#93c5fd',
+        '#f97316', '#fdba74',
+        '#ec4899', '#f9a8d4',
+        '#8b5cf6', '#c4b5fd',
+        '#14b8a6', '#5eead4',
+        '#ef4444', '#fca5a5',
+        '#06b6d4', '#67e8f9',
     ];
 
     public function __construct(
